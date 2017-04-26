@@ -25,15 +25,16 @@ library work;
 use work.constants.all;
 
 entity alu is
--- Se definen como entradas la funciÛn que decide que operaciÛn har· la ALU,
--- con 4 bits ser· suficiente, los dos operandos (op1, op2) de 32 bits y como
--- salida el resultado, tambiÈn de 32 bits.
+-- Se definen como entradas la funci√≥n que decide que operaci√≥n har√° la ALU,
+-- con 4 bits ser√° suficiente, los dos operandos (op1, op2) de 32 bits y como
+-- salida el resultado, tambi√©n de 32 bits.
 	port(funcion: in std_logic_vector(3 downto 0);
 			op1, op2: in std_logic_vector(XLEN-1 downto 0);
 			enable: in std_logic;
 			resultado: out std_logic_vector(XLEN-1 downto 0):= XLEN_ZERO);
 end alu;
 
+	
 architecture Funcional of alu is
 
 component right_XLEN_barrel_shifter
@@ -73,10 +74,10 @@ begin
 		add := std_logic_vector(unsigned(op1) + unsigned(op2));
 		sub := std_logic_vector(unsigned('0' & op1) - unsigned('0' & op2));
 		
-		-- comparaciÛn sin signo: bit de underflow
+		-- comparaci√≥n sin signo: bit de underflow
 		--ltu := sub(XLEN) = '1';
 		
-		-- comparaciÛn con signo: xor del bit de underflow con los bits de signo (tras xor)
+		-- comparaci√≥n con signo: xor del bit de underflow con los bits de signo (tras xor)
 		eor := op1 xor op2;
 		--lt := (sub(XLEN) xor eor(XLEN-1)) = '1';
 		
