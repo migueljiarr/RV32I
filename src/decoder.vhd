@@ -13,7 +13,7 @@ entity decoder is
         O_regsel1: 	out std_logic_vector(4 downto 0);
         O_regsel2: 	out std_logic_vector(4 downto 0);
         O_regdest: 	out std_logic_vector(4 downto 0);
-        O_immediate: 	out std_logic_vector(31 downto 0) := XLEN_ZERO;
+        O_immediate: 	out std_logic_vector(31 downto 0) := XLEN_CERO;
         O_opcode: 	out std_logic_vector(4 downto 0);
         O_funct3: 	out std_logic_vector(2 downto 0);
         O_funct7: 	out std_logic_vector(6 downto 0)
@@ -21,7 +21,7 @@ entity decoder is
 end decoder;
 
 architecture funcional of decoder is
-    signal instruction: std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO;
+    signal instruction: std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
 begin
 
     process(I_clock)

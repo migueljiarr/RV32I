@@ -7,52 +7,72 @@ use work.constants.all;
 
 entity cu is
     Port(
-        E_reloj:    in std_logic;
-        E_busDat:   in std_logic_vector(31 downto 0);
-        E_act:	    in std_logic;
-        E_ocupado:  in std_logic;
-        E_codigoOp: in std_logic_vector(4 downto 0);
-        E_fun3:	    in std_logic_vector(2 downto 0);
-        E_fun7:	    in std_logic_vector(6 downto 0);
+	-- Entradas generales.
+        E_reloj:	in std_logic;
+        E_act:		in std_logic;
+        E_ocupado:	in std_logic;
+
+	-- Entradas desde la RAM.
+        E_busDat:	in std_logic_vector(31 downto 0);
+
+	-- Entradas desde la RAM.
+        E_reg_x1:	in std_logic_vector(31 downto 0);
+
+	-- Entradas desde el decoder.
+        E_codigoOp:	in std_logic_vector(4 downto 0);
+        E_fun3:		in std_logic_vector(2 downto 0);
+        E_fun7:		in std_logic_vector(6 downto 0);
+	E_regSel1:      in std_logic_vector(4 downto 0);
+        E_regSel2:      in std_logic_vector(4 downto 0);
+        E_regDest:      in std_logic_vector(4 downto 0);
+        E_immediato:	in std_logic_vector(31 downto 0) := XLEN_CERO;
+
         -- enable signals for components
         S_alu_act:	out std_logic;
-        S_fetcher_act:	out std_logic;
+        S_decoder_act:	out std_logic;
         S_instruccion:	out std_logic_vector(31 downto 0);
         O_pcuen:	out std_logic;
-        O_regen:	out std_logic;
+
         -- op selection for devices
         S_alu_op:	out aluops_t;
         O_pcuop:	out pcuops_t;
         O_regop:	out regops_t;
+
         -- muxer selection signals
         O_mux_alu_dat1_sel: out integer range 0 to MUX_ALU_DAT1_PORTS-1;
         O_mux_alu_dat2_sel: out integer range 0 to MUX_ALU_DAT2_PORTS-1;
         O_mux_bus_addr_sel: out integer range 0 to MUX_BUS_ADDR_PORTS-1;
         O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1;
-	-- Para la RAM.
+
+	-- Salidas hacia la RAM.
         S_busDir:	out std_logic_vector(31 downto 0);
         S_busDat:	out std_logic_vector(31 downto 0);
+
+	-- Salidas hacia el fichero de registros.
+        S_reg_act:	out std_logic;
+        S_reg_op:	out std_logic;
+        S_reg_sel1:	out std_logic_vector(4 downto 0)
     );
 end cu;
 
 architecture funcional of cu is
-    type estados_t is (FETCH, DECODE, REGREAD, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PCNEXT, PCREGIMM, PCIMM, PCUPDATE_FETCH);
+    type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PCNEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
+    signal pc: unsigned(31 downto 0) := unsigned(XLEN_CERO);
+
 begin
-    
     process(E_reloj, E_act, E_ocupado, E_codigoOp, E_fun3, E_fun7)
         variable estadoSig,estado: estados_t := FETCH;
-        variable pc: signed := 0;
     begin
     
 	-- OJO CON ESTO:
         -- run on falling edge to ensure that all control signals arrive in time
-        -- for the controlled units, which run on the rising edge
-	    if NOT E_reloj'STABLE and E_reloj = '1' and E_act = '1' then
+        -- for the controlled units, which run on the rising edge.
+	    if NOT E_reloj'STABLE and E_reloj = '0' and E_act = '1' then
         
             S_alu_act <= '0';
-            S_fetcher_act <= '0';
+            S_decoder_act <= '0';
             O_pcuen <= '0';
-            O_regen <= '0';
+            S_reg_act <= '0';
 
         
             S_alu_op <= ALU_ADD;
@@ -65,7 +85,8 @@ begin
             O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
             O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
             
-            -- only forward state machine if every component is finished
+            -- Avanzamos al siguiente estado si ninguno de 
+	    -- los componentes nos dice que está ocupado.
             if E_ocupado = '0' then
                 estado := estadoSig;
             end if;
@@ -73,31 +94,33 @@ begin
         
             case estado is
 
+		-- Estado necesario??
                 when FETCH =>
-                    -- fetch next instruction, use the address the program counter unit (PCU) emits
-		    S_busDir <= pc;
+                    -- Pide a la RAM una nueva instrucción en la dirección
+		    -- indicada por el PC.
+		    S_busDir <= std_logic_vector(pc);
                     estadoSig := DECODE;
 
 		when DECODE =>
+		    -- Recogemos la instrucción del bus de datos y la enviamos al decoder.
                     S_instruccion <= E_busDat;
-                    S_fetcher_act <= '1';
-                    estadoSig := REGREAD;
+                    S_decoder_act <= '1';
+                    estadoSig := LEER_CODOP;
 
-                when REGREAD =>
-                    O_regen <= '1';
-                    O_regop <= REGOP_READ;
+                when LEER_CODOP =>
                     case E_codigoOp is
-                        when OP_OP =>             estadoSig := OP;
-                        when OP_OPIMM =>         estadoSig := OPIMM;
-                        when OP_LOAD =>        estadoSig := LOAD;
-                        when OP_STORE =>        estadoSig := STORE;
-                        when OP_JAL =>            estadoSig := JAL;
-                        when OP_JALR =>         estadoSig := JALR;
-                        when OP_BRANCH =>        estadoSig := BRANCH;
-                        when OP_LUI =>            estadoSig := LUI;
-                        when OP_AUIPC =>        estadoSig := AUIPC;
+                        when OP_OP	=>  estadoSig := OP;
+                        when OP_OPIMM	=>  estadoSig := OPIMM;
+                        when OP_LOAD	=>  estadoSig := LOAD;
+                        when OP_STORE	=>  estadoSig := STORE;
+                        when OP_JAL	=>  estadoSig := JAL;
+                        when OP_JALR	=>  estadoSig := JALR;
+                        when OP_BRANCH	=>  estadoSig := BRANCH;
+                        when OP_LUI	=>  estadoSig := LUI;
+                        when OP_AUIPC	=>  estadoSig := AUIPC;
+
 			-- Si desconocemos la instrucción, cojemos la siguiente.
-                        when others =>         estadoSig := PCNEXT;
+                        when others	=>  estadoSig := PCNEXT;
                     end case;
                 
                 when OP =>
@@ -107,23 +130,23 @@ begin
                     case E_fun3 is
                         when FUNC_ADD_SUB =>
                             if E_fun7(5) = '0' then
-                                S_alu_op <= ALU_ADD;
+						    S_alu_op <= ALU_ADD;
                             else
-                                S_alu_op <= ALU_SUB;
+						    S_alu_op <= ALU_SUB;
                             end if;
-                        when FUNC_SLL =>             S_alu_op <= ALU_SLL;
-                        when FUNC_SLT =>             S_alu_op <= ALU_SLT;
-                        when FUNC_SLTU =>         S_alu_op <= ALU_SLTU;
-                        when FUNC_XOR    =>         S_alu_op <= ALU_XOR;
-                        when FUNC_SRL_SRA =>
+                        when FUNC_SLL	    =>      S_alu_op <= ALU_SLL;
+                        when FUNC_SLT	    =>      S_alu_op <= ALU_SLT;
+                        when FUNC_SLTU	    =>	    S_alu_op <= ALU_SLTU;
+                        when FUNC_XOR	    =>	    S_alu_op <= ALU_XOR;
+                        when FUNC_SRL_SRA   =>
                             if E_fun7(5) = '0' then
-                                S_alu_op <= ALU_SRL;
+						    S_alu_op <= ALU_SRL;
                             else
-                                S_alu_op <= ALU_SRA;
+						    S_alu_op <= ALU_SRA;
                             end if;
-                        when FUNC_OR =>             S_alu_op <= ALU_OR;
-                        when FUNC_AND =>             S_alu_op <= ALU_AND;
-                        when others => null;
+                        when FUNC_OR	    =>	    S_alu_op <= ALU_OR;
+                        when FUNC_AND	    =>	    S_alu_op <= ALU_AND;
+                        when others	    =>	    null;
                     end case;
                     estadoSig := REGWRITEALU;
                 
@@ -200,10 +223,10 @@ begin
                 
                 when JAL2 =>
                     -- write computed return address to register file
-                    O_regen <= '1';
+                    S_reg_act <= '1';
                     O_regop <= REGOP_WRITE;
                     O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU;
-                    estadoSig := PCIMM;
+                    estadoSig := PC_INMEDIATO;
                 
                 when JALR =>
                     -- compute return address on ALU
@@ -213,12 +236,14 @@ begin
                     O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_INSTLEN;
                     estadoSig := JALR2;
                 
+		-- Utilizamos el registro x1 como "registro de retorno"
+		-- tal y como se indica en la especificación de RV32I (pág. 15).
                 when JALR2 =>
                     -- write computed return address to register file
-                    O_regen <= '1';
+                    S_reg_act <= '1';
                     O_regop <= REGOP_WRITE;
                     O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU;
-                    estadoSig := PCREGIMM;
+                    estadoSig := PC_REG_INMEDIATO;
                 
                 when BRANCH =>
                     -- use ALU to compute flags
@@ -235,39 +260,39 @@ begin
                     --case E_fun3 is
                         --when FUNC_BEQ =>
                             --if I_eq then
-                                --estadoSig := PCIMM;
+                                --estadoSig := PC_INMEDIATO;
                             --end if;
                         
                         --when FUNC_BNE =>
                             --if not I_eq then
-                                --estadoSig := PCIMM;
+                                --estadoSig := PC_INMEDIATO;
                             --end if;
                             
                         --when FUNC_BLT =>
                             --if I_lt then
-                                --estadoSig := PCIMM;
+                                --estadoSig := PC_INMEDIATO;
                             --end if;
                         
                         --when FUNC_BGE =>
                             --if not I_lt then
-                                --estadoSig := PCIMM;
+                                --estadoSig := PC_INMEDIATO;
                             --end if;
 
                         --when FUNC_BLTU =>
                             --if I_ltu then
-                                --estadoSig := PCIMM;
+                                --estadoSig := PC_INMEDIATO;
                             --end if;
                         
                         --when FUNC_BGEU =>
                             --if not I_ltu then
-                                --estadoSig := PCIMM;
+                                --estadoSig := PC_INMEDIATO;
                             --end if;
                         
                         --when others => null;
                     --end case;
                 
                 when LUI =>
-                    O_regen <= '1';
+                    S_reg_act <= '1';
                     O_regop <= REGOP_WRITE;
                     O_mux_reg_data_sel <= MUX_REG_DATA_PORT_IMM;
                     estadoSig := PCNEXT;
@@ -281,57 +306,43 @@ begin
                     estadoSig := REGWRITEALU;
                     
                 when REGWRITEBUS =>
-                    O_regen <= '1';
+                    S_reg_act <= '1';
                     O_regop <= REGOP_WRITE;
                     O_mux_reg_data_sel <= MUX_REG_DATA_PORT_BUS;
                     estadoSig := PCNEXT;
                 
                 when REGWRITEALU =>
-                    O_regen <= '1';
+                    S_reg_act <= '1';
                     O_regop <= REGOP_WRITE;
                     O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU;
                     estadoSig := PCNEXT;
                 
-		-- Es necesario utilizar la ALU para esto??
-		-- Yo diria que lo haga directamente, es un circuito facil.
                 when PCNEXT =>
-                    -- compute new value for PC: PC + INST_LEN
-                    S_alu_act <= '1';
-                    S_alu_op <= ALU_ADD;
-                    O_mux_alu_dat1_sel <= pc;
-                    O_mux_alu_dat2_sel <= '4';
-                    estadoSig := PCUPDATE_FETCH;
+                    -- Calculamos el nuevo valor del PC en un caso 
+		    -- normal, es decir el cuarto byte siguiente.
+		    pc <= pc + "100";
+                    estadoSig := FETCH;
                 
-                when PCREGIMM =>
-                    -- compute new value for PC: S1 + IMM;
-                    S_alu_act <= '1';
-                    S_alu_op <= ALU_ADD;
-                    O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
-                    estadoSig := PCUPDATE_FETCH;
+                when PC_REG_INMEDIATO =>
+                    -- Pedimos al fichero de registros que nos envíe el la suma del registro y
+		    -- el inmediato que habrá que sumarle al PC en el siguiente ciclo.
+                    S_reg_act <= '1';
+                    S_reg_op <= '0';	    -- Leer. Hace falta crear una constante.
+                    S_reg_sel1 <= "00001";  -- Leemos X1, siguiendo la convención software.
+                    estadoSig := PC_LEER_X1;
                 
-                when PCIMM =>
-                    -- compute new value for PC: PC + IMM;
-                    S_alu_act <= '1';
-                    S_alu_op <= ALU_ADD;
-                    O_mux_alu_dat1_sel <= pc;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
-                    estadoSig := PCUPDATE_FETCH;
-                
-                when PCUPDATE_FETCH =>
-		    -- Hasta el siguiente comentario en español deberia de sobrar todo.
-                    -- load new PC value into program counter unit
-                    O_pcuen <= '1';
-                    O_pcuop <= PCU_SETPC;
-                    
-                    -- given that right now the ALU outputs the address for the next
-                    -- instruction, we can also start instruction fetch
-                    O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU;
-                    --estadoSig := DECODE;
-		    -- Como cojemos el proximo PC de la ALU????
-		    -- La unica manera que se me ocurre es tomar el PC como un registro normal... :(
-		    -- O_busDir <= ???
-                    estadoSig := DECODE;
+                when PC_INMEDIATO =>
+                    -- Pedimos al fichero de registros que nos envíe el inmediato
+		    -- que habrá que sumarle al PC en el siguiente ciclo.
+                    S_reg_act <= '1';
+                    S_reg_op <= '0';	    -- Leer. Hace falta crear una constante.
+                    S_reg_sel1 <= "00001";  -- Leemos X1, siguiendo la convención software.
+                    estadoSig := PC_LEER_X1;
+
+                when PC_LEER_X1 =>
+		    pc	<= pc + unsigned(E_reg_x1);
+                    estadoSig := FETCH;
+		    
                     
             end case;
 
