@@ -12,25 +12,28 @@ entity cu is
         E_act:		in std_logic;
         E_ocupado:	in std_logic;
 
-	-- Entradas desde la RAM.
-        E_busDat:	in std_logic_vector(31 downto 0);
+	-- Entradas desde la ALU.
+        E_resultado:	in std_logic_vector(XLEN-1 downto 0);
 
 	-- Entradas desde la RAM.
-        E_reg_x1:	in std_logic_vector(31 downto 0);
+        E_busDat:	in std_logic_vector(XLEN-1 downto 0);
+
+	-- Entradas desde la RAM.
+        E_reg_x1:	in std_logic_vector(XLEN-1 downto 0);
 
 	-- Entradas desde el decoder.
         E_codigoOp:	in std_logic_vector(4 downto 0);
         E_fun3:		in std_logic_vector(2 downto 0);
         E_fun7:		in std_logic_vector(6 downto 0);
-	E_regSel1:      in std_logic_vector(4 downto 0);
-        E_regSel2:      in std_logic_vector(4 downto 0);
-        E_regDest:      in std_logic_vector(4 downto 0);
-        E_immediato:	in std_logic_vector(31 downto 0) := XLEN_CERO;
+	E_reg_sel1:      in std_logic_vector(4 downto 0);
+        E_reg_sel2:      in std_logic_vector(4 downto 0);
+        E_reg_dest:      in std_logic_vector(4 downto 0);
+        E_immediato:	in std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
 
         -- enable signals for components
         S_alu_act:	out std_logic;
         S_decoder_act:	out std_logic;
-        S_instruccion:	out std_logic_vector(31 downto 0);
+        S_instruccion:	out std_logic_vector(XLEN-1 downto 0);
         O_pcuen:	out std_logic;
 
         -- op selection for devices
@@ -39,25 +42,28 @@ entity cu is
         O_regop:	out regops_t;
 
         -- muxer selection signals
-        O_mux_alu_dat1_sel: out integer range 0 to MUX_ALU_DAT1_PORTS-1;
-        O_mux_alu_dat2_sel: out integer range 0 to MUX_ALU_DAT2_PORTS-1;
+        S_alu_sel1: out integer range 0 to MUX_ALU_DAT1_PORTS-1;
+        S_alu_sel2: out integer range 0 to MUX_ALU_DAT2_PORTS-1;
         O_mux_bus_addr_sel: out integer range 0 to MUX_BUS_ADDR_PORTS-1;
         O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1;
 
 	-- Salidas hacia la RAM.
-        S_busDir:	out std_logic_vector(31 downto 0);
-        S_busDat:	out std_logic_vector(31 downto 0);
+        S_busDir:	out std_logic_vector(XLEN-1 downto 0);
+        S_busDat:	out std_logic_vector(XLEN-1 downto 0);
 
 	-- Salidas hacia el fichero de registros.
         S_reg_act:	out std_logic;
         S_reg_op:	out std_logic;
-        S_reg_sel1:	out std_logic_vector(4 downto 0)
+        S_reg_sel1:	out std_logic_vector(4 downto 0);
+        S_reg_sel2:	out std_logic_vector(4 downto 0);
+        S_reg_selD:	out std_logic_vector(4 downto 0);
+        S_reg_dato:	out std_logic_vector(4 downto 0)
     );
 end cu;
 
 architecture funcional of cu is
     type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PCNEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
-    signal pc: unsigned(31 downto 0) := unsigned(XLEN_CERO);
+    signal pc: unsigned(XLEN-1 downto 0) := unsigned(XLEN_CERO);
 
 begin
     process(E_reloj, E_act, E_ocupado, E_codigoOp, E_fun3, E_fun7)
@@ -80,8 +86,8 @@ begin
             O_regop <= REGOP_READ;
             
             
-            O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
-            O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
+            S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
+            S_alu_sel2 <= MUX_ALU_DAT2_PORT_S2;
             O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
             O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
             
@@ -125,8 +131,8 @@ begin
                 
                 when OP =>
                     S_alu_act <= '1';
-                    O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
+                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
+                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_S2;
                     case E_fun3 is
                         when FUNC_ADD_SUB =>
                             if E_fun7(5) = '0' then
@@ -152,8 +158,8 @@ begin
                 
                 when OPIMM =>
                     S_alu_act <= '1';
-                    O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
+                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
+                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_IMM;
                     case E_fun3 is
                         when FUNC_ADDI =>            S_alu_op <= ALU_ADD;
                         when FUNC_SLLI =>            S_alu_op <= ALU_SLL;
@@ -173,24 +179,30 @@ begin
                     estadoSig := REGWRITEALU;
                 
                 when LOAD =>
-                    -- compute load address on ALU
+                    -- Activamos los registros y la ALU de manera que en el siguiente
+		    -- semiciclo los primeros cedan los datos a la segunda, realizando
+		    -- esta el calculo y devolviendolo a la UC en E_resuldato.
+		    -- Mux???
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD;
-                    O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
+                    S_reg_act <= '1';
+                    S_reg_op <= '1';		-- Escribir. Hace falta crear una constante.
+                    S_reg_sel1 <= E_reg_sel1;
+                    S_reg_sel2 <= E_reg_sel2;
                     estadoSig := LOAD2;
                 
                 when LOAD2 =>
-                    O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU;
-		    --Comentado para que compile.
-                    --case E_fun3 is
-                        --when FUNC_LB =>        O_busop <= BUS_READB;
-                        --when FUNC_LH =>        O_busop <= BUS_READH;
-                        --when FUNC_LW =>        O_busop <= BUS_READW;
-                        --when FUNC_LBU =>        O_busop <= BUS_READBU;
-                        --when FUNC_LHU =>        O_busop <= BUS_READHU;
-                        --when others => null;
-                    --end case;
+                    S_reg_act	<= '1';
+                    S_reg_op	<= '0';		-- Leer. Hace falta crear una constante.
+                    S_reg_selD	<= E_reg_dest;
+                    case E_fun3 is
+                        when FUNC_LB	=>  S_reg_dato <= std_logic_vector(resize(signed(E_resultado(7 downto 0)), XLEN));
+                        when FUNC_LH	=>  S_reg_dato <= std_logic_vector(resize(signed(E_resultado(15 downto 0)), XLEN));
+                        when FUNC_LW	=>  S_reg_dato <= std_logic_vector(resize(signed(E_resultado(31 downto 0)), XLEN));
+                        when FUNC_LBU	=>  S_reg_dato <= std_logic_vector(resize(unsigned(E_resultado(7 downto 0)), XLEN));
+                        when FUNC_LHU	=>  S_reg_dato <= std_logic_vector(resize(unsigned(E_resultado(15 downto 0)), XLEN));
+                        when others	=>  null;
+                    end case;
                     estadoSig := REGWRITEBUS;
                     
                 
@@ -198,8 +210,8 @@ begin
                     -- compute store address on ALU
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD;
-                    O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
+                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
+                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_IMM;
                     estadoSig := STORE2;
                 
                 when STORE2 =>
@@ -217,8 +229,8 @@ begin
                     -- compute return address on ALU
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD;
-                    O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_INSTLEN;
+                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_PC;
+                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_INSTLEN;
                     estadoSig := JAL2;
                 
                 when JAL2 =>
@@ -232,8 +244,8 @@ begin
                     -- compute return address on ALU
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD;
-                    O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_INSTLEN;
+                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_PC;
+                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_INSTLEN;
                     estadoSig := JALR2;
                 
 		-- Utilizamos el registro x1 como "registro de retorno"
@@ -249,8 +261,8 @@ begin
                     -- use ALU to compute flags
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD; -- doesn't really matter for flag computation
-                    O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
+                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
+                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_S2;
                     estadoSig := BRANCH2;
                     
                 when BRANCH2 =>
@@ -301,8 +313,8 @@ begin
                     -- compute PC + IMM on ALU
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD;
-                    O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
-                    O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
+                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_PC;
+                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_IMM;
                     estadoSig := REGWRITEALU;
                     
                 when REGWRITEBUS =>
