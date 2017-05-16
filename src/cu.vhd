@@ -62,7 +62,7 @@ entity cu is
 end cu;
 
 architecture funcional of cu is
-    type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PCNEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
+    type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PC_NEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
     signal pc: unsigned(XLEN-1 downto 0) := unsigned(XLEN_CERO);
 
 begin
@@ -126,7 +126,7 @@ begin
                         when OP_AUIPC	=>  estadoSig := AUIPC;
 
 			-- Si desconocemos la instrucción, cojemos la siguiente.
-                        when others	=>  estadoSig := PCNEXT;
+                        when others	=>  estadoSig := PC_NEXT;
                     end case;
                 
                 when OP =>
@@ -192,6 +192,9 @@ begin
                     estadoSig := LOAD2;
                 
                 when LOAD2 =>
+                    -- Activamos el fichero de registros y le mandamos leer el dato 
+		    -- calculado por la ALU y devuelto a E_resultado, según el 
+		    -- tamaño indicado en la instrucción.
                     S_reg_act	<= '1';
                     S_reg_op	<= '0';		-- Leer. Hace falta crear una constante.
                     S_reg_selD	<= E_reg_dest;
@@ -203,7 +206,7 @@ begin
                         when FUNC_LHU	=>  S_reg_dato <= std_logic_vector(resize(unsigned(E_resultado(15 downto 0)), XLEN));
                         when others	=>  null;
                     end case;
-                    estadoSig := REGWRITEBUS;
+                    estadoSig := PC_NEXT;
                     
                 
                 when STORE =>
@@ -223,7 +226,7 @@ begin
                         --when FUNC_SW =>        O_busop <= BUS_WRITEW;
                         --when others => null;
                     --end case;
-                    estadoSig := PCNEXT;
+                    estadoSig := PC_NEXT;
                 
                 when JAL =>
                     -- compute return address on ALU
@@ -267,7 +270,7 @@ begin
                     
                 when BRANCH2 =>
                     -- make branch decision by looking at flags
-                    estadoSig := PCNEXT; -- by default, don't branch
+                    estadoSig := PC_NEXT; -- by default, don't branch
 		    -- Comentado para que compile.
                     --case E_fun3 is
                         --when FUNC_BEQ =>
@@ -307,7 +310,7 @@ begin
                     S_reg_act <= '1';
                     O_regop <= REGOP_WRITE;
                     O_mux_reg_data_sel <= MUX_REG_DATA_PORT_IMM;
-                    estadoSig := PCNEXT;
+                    estadoSig := PC_NEXT;
                 
                 when AUIPC =>
                     -- compute PC + IMM on ALU
@@ -321,15 +324,15 @@ begin
                     S_reg_act <= '1';
                     O_regop <= REGOP_WRITE;
                     O_mux_reg_data_sel <= MUX_REG_DATA_PORT_BUS;
-                    estadoSig := PCNEXT;
+                    estadoSig := PC_NEXT;
                 
                 when REGWRITEALU =>
                     S_reg_act <= '1';
                     O_regop <= REGOP_WRITE;
                     O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU;
-                    estadoSig := PCNEXT;
+                    estadoSig := PC_NEXT;
                 
-                when PCNEXT =>
+                when PC_NEXT =>
                     -- Calculamos el nuevo valor del PC en un caso 
 		    -- normal, es decir el cuarto byte siguiente.
 		    pc <= pc + "100";
