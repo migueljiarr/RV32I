@@ -48,7 +48,8 @@ entity cu is
         O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1;
 
 	-- Salidas hacia los multiplexores de entrada a la ALU.
-        S_mux_immOReg:	out std_logic;
+        S_mux_immOReg1:	out std_logic;
+        S_mux_immOReg2:	out std_logic;
         S_mux_datImm:	out std_logic_vector(XLEN-1 downto 0);
 
 	-- Salidas hacia la RAM.
@@ -68,12 +69,13 @@ entity cu is
 end cu;
 
 architecture funcional of cu is
-    type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, LOAD3, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PC_NEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
+    type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, STORE3, LOAD, LOAD2, LOAD3, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PC_NEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
     signal pc: unsigned(XLEN-1 downto 0) := unsigned(XLEN_CERO);
 
 begin
     process(E_reloj, E_act, E_ocupado, E_codigoOp, E_fun3, E_fun7)
         variable estadoSig,estado: estados_t := FETCH;
+        variable aux: std_logic_vector(XLEN-1 downto 0);
     begin
     
 	-- OJO CON ESTO:
@@ -195,7 +197,7 @@ begin
                     S_reg_op	    <= '1';		-- Escribir. Hace falta crear una constante.
                     S_reg_sel1	    <= E_reg_sel1;
                     S_mux_datImm    <= E_immediato;
-                    S_mux_immOReg   <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2   <= '0';		-- Immediato. Hace falta una constante.
                     estadoSig	    := LOAD2;
                 
                 when LOAD2 =>
@@ -224,22 +226,45 @@ begin
                     estadoSig	:= PC_NEXT;
                     
                 when STORE =>
-                    -- compute store address on ALU
-                    S_alu_act <= '1';
-                    S_alu_op <= ALU_ADD;
-                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
-                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_IMM;
+		    -- Similar que LOAD.
+                    S_alu_act	    <= '1';
+                    S_alu_op	    <= ALU_ADD;
+                    S_reg_act	    <= '1';
+                    S_reg_op	    <= '1';		-- Escribir. Hace falta crear una constante.
+                    S_reg_sel1	    <= E_reg_sel1;
+                    S_mux_datImm    <= E_immediato;
+                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
                     estadoSig := STORE2;
-                
+
                 when STORE2 =>
-                    O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU;
-		    --Comentado para que compile.
-                    --case E_fun3 is
-                        --when FUNC_SB =>        O_busop <= BUS_WRITEB;
-                        --when FUNC_SH =>        O_busop <= BUS_WRITEH;
-                        --when FUNC_SW =>        O_busop <= BUS_WRITEW;
-                        --when others => null;
-                    --end case;
+		    -- Guardamos en aux la dirección donde almacenar el dato.
+		    -- Para obtener el valor a almacenar, activamos la ALU y el
+		    -- fichero de registros con el registro indicado, sumandole
+		    -- al valor ahí guardado 0, de forma que en el siguiente ciclo
+		    -- dicho valor nos aparezca en E_resultado.
+		    aux		    <= E_resultado;
+                    S_alu_act	    <= '1';
+                    S_alu_op	    <= ALU_ADD;
+                    S_reg_act	    <= '1';
+                    S_reg_op	    <= '0';			-- Leer. Hace falta crear una constante.
+                    S_reg_sel2	    <= E_reg_sel2;
+                    S_mux_immOReg2  <= '1';			-- Immediato. Hace falta una constante.
+                    S_mux_immOReg1  <= '0';			-- Immediato. Hace falta una constante.
+                    S_mux_datImm    <= XLEN_CERO;
+                
+                when STORE3 =>
+		    -- Similar que LOAD3.
+                    S_ram_op	    <= '1';			-- Escribir. Hace falta una constante.
+                    S_ram_act	    <= '1';
+                    S_ram_bDir	    <= aux;
+                    case E_fun3 is
+                        when FUNC_LB	=>  S_ram_bDat <= std_logic_vector(resize(signed(E_resultado(7 downto 0)), XLEN));
+                        when FUNC_LH	=>  S_ram_bDat <= std_logic_vector(resize(signed(E_resultado(15 downto 0)), XLEN));
+                        when FUNC_LW	=>  S_ram_bDat <= std_logic_vector(resize(signed(E_resultado(31 downto 0)), XLEN));
+                        when FUNC_LBU	=>  S_ram_bDat <= std_logic_vector(resize(unsigned(E_resultado(7 downto 0)), XLEN));
+                        when FUNC_LHU	=>  S_ram_bDat <= std_logic_vector(resize(unsigned(E_resultado(15 downto 0)), XLEN));
+                        when others	=>  null;
+                    end case;
                     estadoSig := PC_NEXT;
                 
                 when JAL =>
