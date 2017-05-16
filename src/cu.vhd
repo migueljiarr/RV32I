@@ -16,7 +16,7 @@ entity cu is
         E_resultado:	in std_logic_vector(XLEN-1 downto 0);
 
 	-- Entradas desde la RAM.
-        E_busDat:	in std_logic_vector(XLEN-1 downto 0);
+        E_ram_bDat:	in std_logic_vector(XLEN-1 downto 0);
 
 	-- Entradas desde la RAM.
         E_reg_x1:	in std_logic_vector(XLEN-1 downto 0);
@@ -47,9 +47,15 @@ entity cu is
         O_mux_bus_addr_sel: out integer range 0 to MUX_BUS_ADDR_PORTS-1;
         O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1;
 
+	-- Salidas hacia los multiplexores de entrada a la ALU.
+        S_mux_immOReg:	out std_logic;
+        S_mux_datImm:	out std_logic_vector(XLEN-1 downto 0);
+
 	-- Salidas hacia la RAM.
-        S_busDir:	out std_logic_vector(XLEN-1 downto 0);
-        S_busDat:	out std_logic_vector(XLEN-1 downto 0);
+        S_ram_op:	out std_logic;
+        S_ram_act:	out std_logic;
+        S_ram_bDir:	out std_logic_vector(XLEN-1 downto 0);
+        S_ram_bDat:	out std_logic_vector(XLEN-1 downto 0);
 
 	-- Salidas hacia el fichero de registros.
         S_reg_act:	out std_logic;
@@ -62,7 +68,7 @@ entity cu is
 end cu;
 
 architecture funcional of cu is
-    type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PC_NEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
+    type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, LOAD3, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PC_NEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
     signal pc: unsigned(XLEN-1 downto 0) := unsigned(XLEN_CERO);
 
 begin
@@ -104,12 +110,13 @@ begin
                 when FETCH =>
                     -- Pide a la RAM una nueva instrucción en la dirección
 		    -- indicada por el PC.
-		    S_busDir <= std_logic_vector(pc);
+		    S_ram_bDir <= std_logic_vector(pc);
+		    S_ram_op <= '0';		-- Leer. Hace falta una constante.
                     estadoSig := DECODE;
 
 		when DECODE =>
 		    -- Recogemos la instrucción del bus de datos y la enviamos al decoder.
-                    S_instruccion <= E_busDat;
+                    S_instruccion <= E_ram_bDat;
                     S_decoder_act <= '1';
                     estadoSig := LEER_CODOP;
 
@@ -182,33 +189,40 @@ begin
                     -- Activamos los registros y la ALU de manera que en el siguiente
 		    -- semiciclo los primeros cedan los datos a la segunda, realizando
 		    -- esta el calculo y devolviendolo a la UC en E_resuldato.
-		    -- Mux???
-                    S_alu_act <= '1';
-                    S_alu_op <= ALU_ADD;
-                    S_reg_act <= '1';
-                    S_reg_op <= '1';		-- Escribir. Hace falta crear una constante.
-                    S_reg_sel1 <= E_reg_sel1;
-                    S_reg_sel2 <= E_reg_sel2;
-                    estadoSig := LOAD2;
+                    S_alu_act	    <= '1';
+                    S_alu_op	    <= ALU_ADD;
+                    S_reg_act	    <= '1';
+                    S_reg_op	    <= '1';		-- Escribir. Hace falta crear una constante.
+                    S_reg_sel1	    <= E_reg_sel1;
+                    S_mux_datImm    <= E_immediato;
+                    S_mux_immOReg   <= '0';		-- Immediato. Hace falta una constante.
+                    estadoSig	    := LOAD2;
                 
                 when LOAD2 =>
-                    -- Activamos el fichero de registros y le mandamos leer el dato 
-		    -- calculado por la ALU y devuelto a E_resultado, según el 
+		    -- Vamos a la RAM a recoger el dato de la dirección 
+		    -- calculada en el ciclo anterior.
+		    S_ram_bDir	<= E_resultado;
+		    S_ram_op	<= '0';			-- Leer. Hace falta una constante.
+		    S_ram_act	<= '1';			-- Leer. Hace falta una constante.
+                    estadoSig	:= LOAD3;
+
+                when LOAD3 =>
+                    -- Activamos el fichero de registros y le mandamos almacenar el
+		    -- dato obtenido de memoria en el ciclo anterior, según el
 		    -- tamaño indicado en la instrucción.
                     S_reg_act	<= '1';
                     S_reg_op	<= '0';		-- Leer. Hace falta crear una constante.
                     S_reg_selD	<= E_reg_dest;
                     case E_fun3 is
-                        when FUNC_LB	=>  S_reg_dato <= std_logic_vector(resize(signed(E_resultado(7 downto 0)), XLEN));
-                        when FUNC_LH	=>  S_reg_dato <= std_logic_vector(resize(signed(E_resultado(15 downto 0)), XLEN));
-                        when FUNC_LW	=>  S_reg_dato <= std_logic_vector(resize(signed(E_resultado(31 downto 0)), XLEN));
-                        when FUNC_LBU	=>  S_reg_dato <= std_logic_vector(resize(unsigned(E_resultado(7 downto 0)), XLEN));
-                        when FUNC_LHU	=>  S_reg_dato <= std_logic_vector(resize(unsigned(E_resultado(15 downto 0)), XLEN));
+                        when FUNC_LB	=>  S_reg_dato <= std_logic_vector(resize(signed(E_ram_bDat(7 downto 0)), XLEN));
+                        when FUNC_LH	=>  S_reg_dato <= std_logic_vector(resize(signed(E_ram_bDat(15 downto 0)), XLEN));
+                        when FUNC_LW	=>  S_reg_dato <= std_logic_vector(resize(signed(E_ram_bDat(31 downto 0)), XLEN));
+                        when FUNC_LBU	=>  S_reg_dato <= std_logic_vector(resize(unsigned(E_ram_bDat(7 downto 0)), XLEN));
+                        when FUNC_LHU	=>  S_reg_dato <= std_logic_vector(resize(unsigned(E_ram_bDat(15 downto 0)), XLEN));
                         when others	=>  null;
                     end case;
-                    estadoSig := PC_NEXT;
+                    estadoSig	:= PC_NEXT;
                     
-                
                 when STORE =>
                     -- compute store address on ALU
                     S_alu_act <= '1';
