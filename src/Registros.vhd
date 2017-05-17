@@ -5,7 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 library work;
 use work.constants.all;
 
-entity registers is
+entity registros is
 	Port(
 		E_Reloj: in std_logic;
 		E_Enable: in std_logic;
@@ -21,7 +21,7 @@ entity registers is
 end registers;
 
 
-architecture Funcional of registers is
+architecture Funcional of registros is
 	--[slozanot - INI] DEBERIA IR EN EL FICHERO CONSTANTS
 	type store_registros is array(0 to 31) of std_logic_vector(XLEN-1 downto 0);
 	--[slozanot - FIN] DEBERIA IR EN EL FICHERO 
