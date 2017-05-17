@@ -32,7 +32,7 @@ entity ram4k is
 		I_CLK, I_Enable, I_WR: in std_logic;
 		I_Address, I_Data: in std_logic_vector(XLEN-1 downto 0);
 		O_Data: out std_logic_vector(XLEN-1 downto 0);
-		O_Busy: out std_logic;
+		O_Busy: out std_logic
 	);
 end ram4k;
 
@@ -41,7 +41,7 @@ architecture Behavioral of ram4k is
 	signal ram: store_t := RAM_INIT;
 begin
 
-	process (I_CLK, I_Enable);
+	process (I_CLK, I_Enable)
 	begin
 		-- Si es flanco de subida y se le permite actuar, pone su bit de ocupado a 1, sino a 0
 		if rising_edge(I_CLK) then
