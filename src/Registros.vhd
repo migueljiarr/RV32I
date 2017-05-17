@@ -38,20 +38,20 @@ begin
 			--data := X"00000000"; --Inicializacion de data
 			
 			if E_CodOP = OP_READ then
-				S_OCUPADO = 1; -- Se empieza a trabajar
+				S_OCUPADO <= 1; -- Se empieza a trabajar
 				S_Registro1 <= regs(to_integer(unsigned(E_Sel1)));
 				S_Registro2 <= regs(to_integer(unsigned(E_Sel2)));
 				--data := I_data;
 			end if;
 
 			if E_CodOP = OP_WRITE then
-				S_OCUPADO = 1; -- Se empieza a trabajar
+				S_OCUPADO <= 1; -- Se empieza a trabajar
 				regs(to_integer(unsigned(E_Sel1))) <= E_Dato;
 				--S_OCUPADO = 0; --Se termina de trabajar. Por lo que he visto es necesario ponerlo despues de process
 			end if;
 		end if;
 	end process;
-	S_OCUPADO = 0; -- Se ha terminado de trabajar. Al tratarse de una señal, el valor no se actualiza hasta que no acaba el process (WIKIPEDIA),
+	S_OCUPADO <= 0; -- Se ha terminado de trabajar. Al tratarse de una señal, el valor no se actualiza hasta que no acaba el process (WIKIPEDIA),
 				--Por lo que se considera que sigue trabajando hasta que acabe:
 				--Dentro de un PROCESS pueden usarse ambas, pero hay una diferencia importante entre ellas: 
 				--las señales sólo se actualizan al terminar el proceso en el que se usan, 
