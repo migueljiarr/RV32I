@@ -53,7 +53,6 @@ begin
 				else
 					O_Data <= ram(to_integer(unsigned(I_Address(ADDRLEN-1 downto 0))));
 				end if;
-			else 
 				O_Busy <= '0';
 			end if;
 		end if;
