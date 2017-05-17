@@ -10,9 +10,9 @@ entity registers is
 		E_Reloj: in std_logic;
 		E_Enable: in std_logic;
 		E_CodOP: in regops_t;
-		E_Sel1: in std_logic_vector(4 downto 0);-- Seleccion del primer registro
-		E_Sel2: in std_logic_vector(4 downto 0);-- Seleccion del segundo registro
-		I_selD: in std_logic_vector(4 downto 0);
+		E_Sel1: in std_logic_vector(4 downto 0);-- Seleccion del primer registro. Se usa tambien para indicar destino en el SW
+		E_Sel2: in std_logic_vector(4 downto 0);-- Seleccion del segundo registro. 
+		--I_selD: in std_logic_vector(4 downto 0);
 		E_Dato: in std_logic_vector(XLEN-1 downto 0); -- Dato a guardar para el SW
 		S_Registro1: out std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO; -- Salida registro 1 (LW)
 		S_Registro2: out std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO;  -- Salida registro 2 (LW)
@@ -35,26 +35,21 @@ begin
 		-- Si es de subida
 		if rising_edge(I_clk) and I_en = '1' then
 			
-			data := X"00000000";
+			data := X"00000000"; --Inicializacion de data
 			
-			if I_op = OP_READ then
+			if E_CodOP = OP_READ then
 				S_OCUPADO = 1; -- Se empieza a trabajar
 				S_Registro1 <= regs(to_integer(unsigned(E_Sel1)));
 				S_Registro2 <= regs(to_integer(unsigned(E_Sel2)));
 				--data := I_data;
-				
+				S_OCUPADO = 0; -- Se ha terminado de trabajar
 			end if;
 
-			-- this is a pattern that Quartus RAM synthesis understands
-			-- as *not* being read-during-write (with no_rw_check attribute)
-			if I_op = REGOP_WRITE then
-				regs(to_integer(unsigned(I_selD))) <= data;
-			else
-				O_dataS1 <= regs(to_integer(unsigned(I_selS1)));
-				O_dataS2 <= regs(to_integer(unsigned(I_selS2)));
+			if E_CodOP = OP_WRITE then
+				S_OCUPADO = 1; -- Se empieza a trabajar
+				regs(to_integer(unsigned(E_Sel1))) <= E_Dato;
+				S_OCUPADO = 0; --Se termina de trabajar
 			end if;
-
-	
 		end if;
 	end process;
 	
