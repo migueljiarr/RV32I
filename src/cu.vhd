@@ -406,7 +406,7 @@ begin
                     --S_reg_act	    <= '1';
                     --S_reg_op	    <= '0';		-- Leer. Hace falta crear una constante.
                     S_mux_immOReg1  <= '0';		-- Immediato. Hace falta una constante.
-                    S_mux_datImm1   <= XLEN_CERO;
+                    S_mux_datImm1   <= std_logic_vector(pc);
                     S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= E_immediato;
                     estadoSig := PC_ACTUALIZAR;
