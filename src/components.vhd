@@ -12,6 +12,7 @@ begin
     o <= i0 when s='0' else i1;
 end flow;
 
+
 -- 2 to 1 mux with XLEN number of inputs and outputs.
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
