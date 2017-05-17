@@ -42,8 +42,6 @@ entity cu is
         O_regop:	out regops_t;
 
         -- muxer selection signals
-        S_alu_sel1: out integer range 0 to MUX_ALU_DAT1_PORTS-1;
-        S_alu_sel2: out integer range 0 to MUX_ALU_DAT2_PORTS-1;
         O_mux_bus_addr_sel: out integer range 0 to MUX_BUS_ADDR_PORTS-1;
         O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1;
 
@@ -64,12 +62,12 @@ entity cu is
         S_reg_sel1:	out std_logic_vector(4 downto 0);
         S_reg_sel2:	out std_logic_vector(4 downto 0);
         S_reg_selD:	out std_logic_vector(4 downto 0);
-        S_reg_dato:	out std_logic_vector(4 downto 0)
+        S_reg_dato:	out std_logic_vector(XLEN-1 downto 0)
     );
 end cu;
 
 architecture funcional of cu is
-    type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, STORE3, LOAD, LOAD2, LOAD3, BRANCH, BRANCH2, REGWRITEBUS, REGWRITEALU, PC_NEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
+    type estados_t is (FETCH, DECODE, LEER_CODOP, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, STORE3, LOAD, LOAD2, LOAD3, BRANCH, BRANCH2, WRITE_REG, PC_NEXT, PC_REG_INMEDIATO, PC_INMEDIATO, PC_LEER_X1);
     signal pc: unsigned(XLEN-1 downto 0) := unsigned(XLEN_CERO);
 
 begin
@@ -94,8 +92,6 @@ begin
             O_regop <= REGOP_READ;
             
             
-            S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
-            S_alu_sel2 <= MUX_ALU_DAT2_PORT_S2;
             O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
             O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
             
@@ -139,9 +135,13 @@ begin
                     end case;
                 
                 when OP =>
-                    S_alu_act <= '1';
-                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
-                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_S2;
+                    S_alu_act	<= '1';
+                    S_reg_act	    <= '1';
+                    S_reg_op	    <= '0';		-- Leer. Hace falta crear una constante.
+                    S_mux_immOReg1  <= '1';		-- Registro. Hace falta una constante.
+                    S_mux_immOReg2  <= '1';		-- Registro. Hace falta una constante.
+                    S_reg_sel1	    <= E_reg_sel1;
+                    S_reg_sel2	    <= E_reg_sel2;
                     case E_fun3 is
                         when FUNC_ADD_SUB =>
                             if E_fun7(5) = '0' then
@@ -163,29 +163,33 @@ begin
                         when FUNC_AND	    =>	    S_alu_op <= ALU_AND;
                         when others	    =>	    null;
                     end case;
-                    estadoSig := REGWRITEALU;
+                    estadoSig := WRITE_REG;
                 
                 when OPIMM =>
-                    S_alu_act <= '1';
-                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
-                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_IMM;
+                    S_alu_act	    <= '1';
+                    S_reg_act	    <= '1';
+                    S_reg_op	    <= '0';		-- Leer. Hace falta crear una constante.
+                    S_mux_immOReg1  <= '1';		-- Registro. Hace falta una constante.
+                    S_reg_sel1	    <= E_reg_sel1;
+                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_datImm    <= E_immediato;
                     case E_fun3 is
-                        when FUNC_ADDI =>            S_alu_op <= ALU_ADD;
-                        when FUNC_SLLI =>            S_alu_op <= ALU_SLL;
-                        when FUNC_SLTI =>            S_alu_op <= ALU_SLT;
-                        when FUNC_SLTIU =>        S_alu_op <= ALU_SLTU;
-                        when FUNC_XORI =>            S_alu_op <= ALU_XOR;
+                        when FUNC_ADDI	    =>		S_alu_op <= ALU_ADD;
+                        when FUNC_SLLI	    =>		S_alu_op <= ALU_SLL;
+                        when FUNC_SLTI	    =>		S_alu_op <= ALU_SLT;
+                        when FUNC_SLTIU	    =>		S_alu_op <= ALU_SLTU;
+                        when FUNC_XORI	    =>		S_alu_op <= ALU_XOR;
                         when FUNC_SRLI_SRAI =>
                             if E_fun7(5) = '0' then
-                                S_alu_op <= ALU_SRL;
+							S_alu_op <= ALU_SRL;
                             else
-                                S_alu_op <= ALU_SRA;
+							S_alu_op <= ALU_SRA;
                             end if;
-                        when FUNC_ORI =>            S_alu_op <= ALU_OR;
-                        when FUNC_ANDI =>            S_alu_op <= ALU_AND;
-                        when others => null;
+                        when FUNC_ORI	    =>		S_alu_op <= ALU_OR;
+                        when FUNC_ANDI	    =>		S_alu_op <= ALU_AND;
+                        when others	    =>		null;
                     end case;
-                    estadoSig := REGWRITEALU;
+                    estadoSig := WRITE_REG;
                 
                 when LOAD =>
                     -- Activamos los registros y la ALU de manera que en el siguiente
@@ -242,7 +246,7 @@ begin
 		    -- fichero de registros con el registro indicado, sumandole
 		    -- al valor ahí guardado 0, de forma que en el siguiente ciclo
 		    -- dicho valor nos aparezca en E_resultado.
-		    aux		    <= E_resultado;
+		    aux		    := E_resultado;
                     S_alu_act	    <= '1';
                     S_alu_op	    <= ALU_ADD;
                     S_reg_act	    <= '1';
@@ -271,8 +275,8 @@ begin
                     -- compute return address on ALU
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD;
-                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_PC;
-                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_INSTLEN;
+                    --S_reg_sel1 <= MUX_ALU_DAT1_PORT_PC;
+                    --S_reg_sel2 <= MUX_ALU_DAT2_PORT_INSTLEN;
                     estadoSig := JAL2;
                 
                 when JAL2 =>
@@ -286,8 +290,8 @@ begin
                     -- compute return address on ALU
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD;
-                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_PC;
-                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_INSTLEN;
+                    --S_reg_sel1 <= MUX_ALU_DAT1_PORT_PC;
+                    --S_reg_sel2 <= MUX_ALU_DAT2_PORT_INSTLEN;
                     estadoSig := JALR2;
                 
 		-- Utilizamos el registro x1 como "registro de retorno"
@@ -303,8 +307,8 @@ begin
                     -- use ALU to compute flags
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD; -- doesn't really matter for flag computation
-                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_S1;
-                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_S2;
+                    --S_reg_sel1 <= MUX_ALU_DAT1_PORT_S1;
+                    --S_reg_sel2 <= MUX_ALU_DAT2_PORT_S2;
                     estadoSig := BRANCH2;
                     
                 when BRANCH2 =>
@@ -355,21 +359,16 @@ begin
                     -- compute PC + IMM on ALU
                     S_alu_act <= '1';
                     S_alu_op <= ALU_ADD;
-                    S_alu_sel1 <= MUX_ALU_DAT1_PORT_PC;
-                    S_alu_sel2 <= MUX_ALU_DAT2_PORT_IMM;
-                    estadoSig := REGWRITEALU;
+                    --S_reg_sel1 <= MUX_ALU_DAT1_PORT_PC;
+                    --S_reg_sel2 <= MUX_ALU_DAT2_PORT_IMM;
+                    estadoSig := WRITE_REG;
                     
-                when REGWRITEBUS =>
-                    S_reg_act <= '1';
-                    O_regop <= REGOP_WRITE;
-                    O_mux_reg_data_sel <= MUX_REG_DATA_PORT_BUS;
-                    estadoSig := PC_NEXT;
-                
-                when REGWRITEALU =>
-                    S_reg_act <= '1';
-                    O_regop <= REGOP_WRITE;
-                    O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU;
-                    estadoSig := PC_NEXT;
+                when WRITE_REG =>
+                    S_reg_act	<= '1';
+                    S_reg_op	<= '1';		-- Escribir. Hace falta crear una constante.
+                    S_reg_selD	<= E_reg_dest;
+                    S_reg_dato	<= E_resultado;
+                    estadoSig	:= PC_NEXT;
                 
                 when PC_NEXT =>
                     -- Calculamos el nuevo valor del PC en un caso 
