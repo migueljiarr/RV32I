@@ -30,27 +30,33 @@ architecture Funcional of registros is
 begin
 
 	process(E_Reloj, E_Enable, E_CodOP, E_Sel1, E_Sel2, I_selD, E_Dato)
-		variable data: std_logic_vector(XLEN-1 downto 0);
+		--variable data: std_logic_vector(XLEN-1 downto 0);
 	begin
 		-- Si es de subida
 		if rising_edge(I_clk) and I_en = '1' then
 			
-			data := X"00000000"; --Inicializacion de data
+			--data := X"00000000"; --Inicializacion de data
 			
 			if E_CodOP = OP_READ then
 				S_OCUPADO = 1; -- Se empieza a trabajar
 				S_Registro1 <= regs(to_integer(unsigned(E_Sel1)));
 				S_Registro2 <= regs(to_integer(unsigned(E_Sel2)));
 				--data := I_data;
-				S_OCUPADO = 0; -- Se ha terminado de trabajar
 			end if;
 
 			if E_CodOP = OP_WRITE then
 				S_OCUPADO = 1; -- Se empieza a trabajar
 				regs(to_integer(unsigned(E_Sel1))) <= E_Dato;
-				S_OCUPADO = 0; --Se termina de trabajar
+				--S_OCUPADO = 0; --Se termina de trabajar. Por lo que he visto es necesario ponerlo despues de process
 			end if;
 		end if;
 	end process;
+	S_OCUPADO = 0; -- Se ha terminado de trabajar. Al tratarse de una señal, el valor no se actualiza hasta que no acaba el process (WIKIPEDIA),
+				--Por lo que se considera que sigue trabajando hasta que acabe:
+				--Dentro de un PROCESS pueden usarse ambas, pero hay una diferencia importante entre ellas: 
+				--las señales sólo se actualizan al terminar el proceso en el que se usan, 
+				--mientras que las variables se actualizan instantáneamente, 
+				--es decir, su valor cambia en el momento de la asignación.
+
 	
 end Funcional;
