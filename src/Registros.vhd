@@ -50,13 +50,7 @@ begin
 				--S_OCUPADO = 0; --Se termina de trabajar. Por lo que he visto es necesario ponerlo despues de process
 			end if;
 		end if;
+		S_OCUPADO <= 0;
 	end process;
-	S_OCUPADO <= 0; -- Se ha terminado de trabajar. Al tratarse de una señal, el valor no se actualiza hasta que no acaba el process (WIKIPEDIA),
-				--Por lo que se considera que sigue trabajando hasta que acabe:
-				--Dentro de un PROCESS pueden usarse ambas, pero hay una diferencia importante entre ellas: 
-				--las señales sólo se actualizan al terminar el proceso en el que se usan, 
-				--mientras que las variables se actualizan instantáneamente, 
-				--es decir, su valor cambia en el momento de la asignación.
-
 	
 end Funcional;
