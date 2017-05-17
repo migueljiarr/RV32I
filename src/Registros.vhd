@@ -16,7 +16,7 @@ entity registros is
 		E_Dato: in std_logic_vector(XLEN-1 downto 0); -- Dato a guardar para el SW
 		S_Registro1: out std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO; -- Salida registro 1 (LW)
 		S_Registro2: out std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO;  -- Salida registro 2 (LW)
-		S_OCUPADO: out std_logic; --BIT QUE INDICA SI SE ESTA HACIENDO UNA ACCION O NO
+		S_OCUPADO: out std_logic; --BIT QUE INDICA SI SE ESTA HACIENDO UNA ACCION O NO. Indica si la tarea se ha acabado
 	);
 end registers;
 
