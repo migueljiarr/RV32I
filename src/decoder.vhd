@@ -9,11 +9,11 @@ entity decoder is
     Port(
         I_clock: 	in std_logic;
         I_enable: 	in std_logic;
-        I_instruction: 	in std_logic_vector(31 downto 0);
+        I_instruction: 	in std_logic_vector(XLEN-1 downto 0);
         O_regsel1: 	out std_logic_vector(4 downto 0);
         O_regsel2: 	out std_logic_vector(4 downto 0);
         O_regdest: 	out std_logic_vector(4 downto 0);
-        O_immediate: 	out std_logic_vector(31 downto 0) := XLEN_CERO;
+        O_immediate: 	out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
         O_opcode: 	out std_logic_vector(4 downto 0);
         O_funct3: 	out std_logic_vector(2 downto 0);
         O_funct7: 	out std_logic_vector(6 downto 0)
@@ -41,7 +41,7 @@ begin
     	-- los últimos 2 bits de la instrucción son siempre '00'.
        	opcode :=  instruction(6 downto 2);
        	funct3 :=  instruction(14 downto 12);
-       	funct7 :=  instruction(31 downto 25);
+       	funct7 :=  instruction(XLEN-1 downto 25);
 
         O_regsel1 <= instruction(19 downto 15);
         O_regsel2 <= instruction(24 downto 20);
