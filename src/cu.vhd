@@ -312,50 +312,79 @@ begin
                     estadoSig := PC_REG_INMEDIATO;
                 
                 when BRANCH =>
-                    -- use ALU to compute flags
-                    S_alu_act <= '1';
-                    S_alu_op <= ALU_ADD; -- doesn't really matter for flag computation
-                    --S_reg_sel1 <= MUX_ALU_DAT1_PORT_S1;
-                    --S_reg_sel2 <= MUX_ALU_DAT2_PORT_S2;
-                    estadoSig := BRANCH2;
+                    -- Usamos la ALu para comparar los registros.
+                    S_alu_act	    <= '1';
+		    S_reg_act	    <= '1';
+                    S_reg_op	    <= '0';
+		    S_mux_immOReg1  <= '1';
+		    S_mux_immOReg2  <= '1';
+
+                    case E_fun3 is
+                        when FUNC_BEQ =>
+			    S_alu_op	    <= ALU_SUB;
+			    S_reg_sel1	    <= E_reg_sel1;
+			    S_reg_sel2	    <= E_reg_sel2;
+                        when FUNC_BNE =>
+			    S_alu_op	    <= ALU_SUB;
+			    S_reg_sel1	    <= E_reg_sel1;
+			    S_reg_sel2	    <= E_reg_sel2;
+                        when FUNC_BLT =>
+			    S_alu_op	    <= ALU_SLT;
+			    S_reg_sel1	    <= E_reg_sel1;
+			    S_reg_sel2	    <= E_reg_sel2;
+                        when FUNC_BGE =>
+			    S_alu_op	    <= ALU_SLT;
+			    S_reg_sel1	    <= E_reg_sel2;
+			    S_reg_sel2	    <= E_reg_sel1;
+                        when FUNC_BLTU =>
+			    S_alu_op	    <= ALU_SLTU;
+			    S_reg_sel1	    <= E_reg_sel1;
+			    S_reg_sel2	    <= E_reg_sel2;
+                        when FUNC_BGEU =>
+			    S_alu_op	    <= ALU_SLTU;
+			    S_reg_sel1	    <= E_reg_sel2;
+			    S_reg_sel2	    <= E_reg_sel1;
+			when others => null;
+                    end case;
+                    estadoSig	    := BRANCH2;
                     
                 when BRANCH2 =>
-                    -- make branch decision by looking at flags
-                    estadoSig := PC_NEXT; -- by default, don't branch
-		    -- Comentado para que compile.
-                    --case E_fun3 is
-                        --when FUNC_BEQ =>
-                            --if I_eq then
-                                --estadoSig := PC_INMEDIATO;
-                            --end if;
+                    -- Hacemos la decisión según el resultado.
+		    estadoSig := PC_NEXT;  -- Situación por defecto.
+                    case E_fun3 is
+                        when FUNC_BEQ =>
+                            if E_resultado=XLEN_CERO then
+                                estadoSig := PC_INMEDIATO;
+                            end if;
                         
-                        --when FUNC_BNE =>
-                            --if not I_eq then
-                                --estadoSig := PC_INMEDIATO;
-                            --end if;
+                        when FUNC_BNE =>
+                            if E_resultado/=XLEN_CERO then
+                                estadoSig := PC_INMEDIATO;
+                            end if;
                             
-                        --when FUNC_BLT =>
-                            --if I_lt then
-                                --estadoSig := PC_INMEDIATO;
-                            --end if;
+                        when FUNC_BLT =>
+                            if E_resultado=XLEN_UNO then
+                                estadoSig := PC_INMEDIATO;
+                            end if;
                         
-                        --when FUNC_BGE =>
-                            --if not I_lt then
-                                --estadoSig := PC_INMEDIATO;
-                            --end if;
+                        when FUNC_BGE =>
+                            if E_resultado=XLEN_UNO  then
+                                estadoSig := PC_INMEDIATO;
+                            end if;
 
-                        --when FUNC_BLTU =>
-                            --if I_ltu then
-                                --estadoSig := PC_INMEDIATO;
-                            --end if;
+                        when FUNC_BLTU =>
+                            if E_resultado=XLEN_UNO then
+                                estadoSig := PC_INMEDIATO;
+                            end if;
                         
-                        --when FUNC_BGEU =>
-                            --if not I_ltu then
-                                --estadoSig := PC_INMEDIATO;
-                            --end if;
+                        when FUNC_BGEU =>
+                            if E_resultado=XLEN_UNO then
+                                estadoSig := PC_INMEDIATO;
+                            end if;
                         
-                        --when others => null;
-                    --end case;
+                        when others =>
+				estadoSig := PC_NEXT;
+                    end case;
                 
                 when LUI =>
                     S_reg_act	<= '1';
@@ -414,7 +443,6 @@ begin
                 when PC_ACTUALIZAR =>
 		    pc	<= pc + unsigned(E_resultado);
                     estadoSig := FETCH;
-		    
                     
             end case;
 
