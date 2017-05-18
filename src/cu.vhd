@@ -25,25 +25,19 @@ entity cu is
         E_codigoOp:	in std_logic_vector(4 downto 0);
         E_fun3:		in std_logic_vector(2 downto 0);
         E_fun7:		in std_logic_vector(6 downto 0);
-	E_reg_sel1:      in std_logic_vector(4 downto 0);
-        E_reg_sel2:      in std_logic_vector(4 downto 0);
-        E_reg_dest:      in std_logic_vector(4 downto 0);
+	E_reg_sel1:      in std_logic_vector(log2XLEN-1 downto 0);
+        E_reg_sel2:      in std_logic_vector(log2XLEN-1 downto 0);
+        E_reg_dest:      in std_logic_vector(log2XLEN-1 downto 0);
         E_inmediato:	in std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
 
         -- enable signals for components
         S_alu_act:	out std_logic;
         S_decoder_act:	out std_logic;
         S_instruccion:	out std_logic_vector(XLEN-1 downto 0);
-        O_pcuen:	out std_logic;
 
         -- op selection for devices
         S_alu_op:	out aluops_t;
-        O_pcuop:	out pcuops_t;
-        O_regop:	out regops_t;
 
-        -- muxer selection signals
-        O_mux_bus_addr_sel: out integer range 0 to MUX_BUS_ADDR_PORTS-1;
-        O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1;
 
 	-- Salidas hacia los multiplexores de entrada a la ALU.
         S_mux_immOReg1:	out std_logic;
@@ -60,9 +54,9 @@ entity cu is
 	-- Salidas hacia el fichero de registros.
         S_reg_act:	out std_logic;
         S_reg_op:	out std_logic;
-        S_reg_sel1:	out std_logic_vector(4 downto 0);
-        S_reg_sel2:	out std_logic_vector(4 downto 0);
-        S_reg_selD:	out std_logic_vector(4 downto 0);
+        S_reg_sel1:	out std_logic_vector(log2XLEN-1 downto 0);
+        S_reg_sel2:	out std_logic_vector(log2XLEN-1 downto 0);
+        S_reg_selD:	out std_logic_vector(log2XLEN-1 downto 0);
         S_reg_dato:	out std_logic_vector(XLEN-1 downto 0)
     );
 end cu;
@@ -84,17 +78,8 @@ begin
         
             S_alu_act <= '0';
             S_decoder_act <= '0';
-            O_pcuen <= '0';
             S_reg_act <= '0';
-
-        
             S_alu_op <= ALU_ADD;
-            O_pcuop <= PCU_SETPC;
-            O_regop <= REGOP_READ;
-            
-            
-            O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
-            O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
             
             -- Avanzamos al siguiente estado si ninguno de 
 	    -- los componentes nos dice que está ocupado.
@@ -105,12 +90,11 @@ begin
         
             case estado is
 
-		-- Estado necesario??
                 when FETCH =>
                     -- Pide a la RAM una nueva instrucción en la dirección
 		    -- indicada por el PC.
 		    S_ram_bDir <= std_logic_vector(pc);
-		    S_ram_op <= '0';		-- Leer. Hace falta una constante.
+		    S_ram_op <= LEER;
                     estadoSig := DECODE;
 
 		when DECODE =>
@@ -138,9 +122,9 @@ begin
                 when OP =>
                     S_alu_act	<= '1';
                     S_reg_act	    <= '1';
-                    S_reg_op	    <= '0';		-- Leer. Hace falta crear una constante.
-                    S_mux_immOReg1  <= '1';		-- Registro. Hace falta una constante.
-                    S_mux_immOReg2  <= '1';		-- Registro. Hace falta una constante.
+                    S_reg_op	    <= LEER;		-- Leer. Hace falta crear una constante.
+                    S_mux_immOReg1  <= REGISTRO;		-- Registro. Hace falta una constante.
+                    S_mux_immOReg2  <= REGISTRO;		-- Registro. Hace falta una constante.
                     S_reg_sel1	    <= E_reg_sel1;
                     S_reg_sel2	    <= E_reg_sel2;
                     case E_fun3 is
@@ -169,10 +153,10 @@ begin
                 when OPIMM =>
                     S_alu_act	    <= '1';
                     S_reg_act	    <= '1';
-                    S_reg_op	    <= '0';		-- Leer. Hace falta crear una constante.
-                    S_mux_immOReg1  <= '1';		-- Registro. Hace falta una constante.
+                    S_reg_op	    <= LEER;		-- Leer. Hace falta crear una constante.
+                    S_mux_immOReg1  <= REGISTRO;		-- Registro. Hace falta una constante.
                     S_reg_sel1	    <= E_reg_sel1;
-                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2    <= E_inmediato;
                     case E_fun3 is
                         when FUNC_ADDI	    =>		S_alu_op <= ALU_ADD;
@@ -199,18 +183,18 @@ begin
                     S_alu_act	    <= '1';
                     S_alu_op	    <= ALU_ADD;
                     S_reg_act	    <= '1';
-                    S_reg_op	    <= '1';		-- Escribir. Hace falta crear una constante.
-                    S_mux_immOReg1  <= '1';		-- Registro. Hace falta una constante.
+                    S_reg_op	    <= ESCRIBIR;		-- Escribir. Hace falta crear una constante.
+                    S_mux_immOReg1  <= REGISTRO;		-- Registro. Hace falta una constante.
                     S_reg_sel1	    <= E_reg_sel1;
                     S_mux_datImm2   <= E_inmediato;
-                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     estadoSig	    := LOAD2;
                 
                 when LOAD2 =>
 		    -- Vamos a la RAM a recoger el dato de la dirección 
 		    -- calculada en el ciclo anterior.
 		    S_ram_bDir	<= E_resultado;
-		    S_ram_op	<= '0';			-- Leer. Hace falta una constante.
+		    S_ram_op	<= LEER;			-- Leer. Hace falta una constante.
 		    S_ram_act	<= '1';			-- Leer. Hace falta una constante.
                     estadoSig	:= LOAD3;
 
@@ -219,7 +203,7 @@ begin
 		    -- dato obtenido de memoria en el ciclo anterior, según el
 		    -- tamaño indicado en la instrucción.
                     S_reg_act	<= '1';
-                    S_reg_op	<= '0';		-- Leer. Hace falta crear una constante.
+                    S_reg_op	<= LEER;		-- Leer. Hace falta crear una constante.
                     S_reg_selD	<= E_reg_dest;
                     case E_fun3 is
                         when FUNC_LB	=>  S_reg_dato <= std_logic_vector(resize(signed(E_ram_bDat(7 downto 0)), XLEN));
@@ -236,10 +220,10 @@ begin
                     S_alu_act	    <= '1';
                     S_alu_op	    <= ALU_ADD;
                     S_reg_act	    <= '1';
-                    S_reg_op	    <= '1';		-- Escribir. Hace falta crear una constante.
+                    S_reg_op	    <= ESCRIBIR;		-- Escribir. Hace falta crear una constante.
                     S_reg_sel1	    <= E_reg_sel1;
                     S_mux_datImm2   <= E_inmediato;
-                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     estadoSig := STORE2;
 
                 when STORE2 =>
@@ -252,15 +236,15 @@ begin
                     S_alu_act	    <= '1';
                     S_alu_op	    <= ALU_ADD;
                     S_reg_act	    <= '1';
-                    S_reg_op	    <= '0';			-- Leer. Hace falta crear una constante.
+                    S_reg_op	    <= LEER;			-- Leer. Hace falta crear una constante.
                     S_reg_sel2	    <= E_reg_sel2;
-                    S_mux_immOReg2  <= '1';			-- Registro. Hace falta una constante.
-                    S_mux_immOReg1  <= '0';			-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2  <= REGISTRO;			-- Registro. Hace falta una constante.
+                    S_mux_immOReg1  <= INMEDIATO;			-- Immediato. Hace falta una constante.
                     S_mux_datImm1    <= XLEN_CERO;
                 
                 when STORE3 =>
 		    -- Similar que LOAD3.
-                    S_ram_op	    <= '1';			-- Escribir. Hace falta una constante.
+                    S_ram_op	    <= ESCRIBIR;			-- Escribir. Hace falta una constante.
                     S_ram_act	    <= '1';
                     S_ram_bDir	    <= aux;
                     case E_fun3 is
@@ -278,16 +262,16 @@ begin
                     S_alu_act	<= '1';
                     S_alu_op	<= ALU_ADD;
                     --S_reg_act	<= '1';
-                    S_mux_immOReg1  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg1  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm1   <= std_logic_vector(resize(unsigned'("100"),XLEN));
-                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= std_logic_vector(pc);
                     estadoSig := JAL2;
                 
                 when JAL2 =>
                     -- Escribimos la dirección de retorno en el fichero de registros.
                     S_reg_act	<= '1';
-                    S_reg_op    <= '1';         -- Escribir. Hace falta crear una constante.
+                    S_reg_op    <= ESCRIBIR;         -- Escribir. Hace falta crear una constante.
                     S_reg_selD  <= E_reg_dest;
                     S_reg_dato  <= E_resultado;
                     estadoSig := PC_INMEDIATO;
@@ -297,16 +281,16 @@ begin
                     S_alu_act	<= '1';
                     S_alu_op	<= ALU_ADD;
                     --S_reg_act	<= '1';
-                    S_mux_immOReg1  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg1  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm1   <= std_logic_vector(resize(unsigned'("100"),XLEN));
-                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= std_logic_vector(pc);
                     estadoSig := JALR2;
                 
                 when JALR2 =>
                     -- Equivalente a JAL2.
                     S_reg_act	<= '1';
-                    S_reg_op    <= '1';         -- Escribir. Hace falta crear una constante.
+                    S_reg_op    <= ESCRIBIR;         -- Escribir. Hace falta crear una constante.
                     S_reg_selD  <= E_reg_dest;
                     S_reg_dato  <= E_resultado;
                     estadoSig := PC_REG_INMEDIATO;
@@ -315,9 +299,9 @@ begin
                     -- Usamos la ALu para comparar los registros.
                     S_alu_act	    <= '1';
 		    S_reg_act	    <= '1';
-                    S_reg_op	    <= '0';
-		    S_mux_immOReg1  <= '1';
-		    S_mux_immOReg2  <= '1';
+                    S_reg_op	    <= LEER;
+		    S_mux_immOReg1  <= REGISTRO;
+		    S_mux_immOReg2  <= REGISTRO;
 
                     case E_fun3 is
                         when FUNC_BEQ =>
@@ -388,7 +372,7 @@ begin
                 
                 when LUI =>
                     S_reg_act	<= '1';
-                    S_reg_op	<= '1';		-- Escribir. Hace falta crear una constante.
+                    S_reg_op	<= ESCRIBIR;		-- Escribir. Hace falta crear una constante.
                     S_reg_selD	<= E_reg_dest;
                     S_reg_dato	<= E_inmediato;
                     estadoSig	:= PC_NEXT;
@@ -397,15 +381,15 @@ begin
                     S_alu_act	<= '1';
                     S_alu_op	<= ALU_ADD;
                     S_reg_act	<= '1';
-                    S_mux_immOReg1  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg1  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm1   <= E_inmediato;
-                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= std_logic_vector(pc);
                     estadoSig	:= WRITE_REG;
                     
                 when WRITE_REG =>
                     S_reg_act	<= '1';
-                    S_reg_op	<= '1';		-- Escribir. Hace falta crear una constante.
+                    S_reg_op	<= ESCRIBIR;		-- Escribir. Hace falta crear una constante.
                     S_reg_selD	<= E_reg_dest;
                     S_reg_dato	<= E_resultado;
                     estadoSig	:= PC_NEXT;
@@ -421,10 +405,10 @@ begin
                     S_alu_act	    <= '1';
                     S_alu_op	    <= ALU_ADD;
                     S_reg_act	    <= '1';
-                    S_reg_op	    <= '0';		-- Leer. Hace falta crear una constante.
-                    S_mux_immOReg1  <= '1';		-- Registro. Hace falta una constante.
+                    S_reg_op	    <= LEER;		-- Leer. Hace falta crear una constante.
+                    S_mux_immOReg1  <= REGISTRO;		-- Registro. Hace falta una constante.
                     S_reg_sel1	    <= E_reg_sel1;
-                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= E_inmediato;
                     estadoSig := PC_ACTUALIZAR;
                 
@@ -434,9 +418,9 @@ begin
                     S_alu_op	    <= ALU_ADD;
                     --S_reg_act	    <= '1';
                     --S_reg_op	    <= '0';		-- Leer. Hace falta crear una constante.
-                    S_mux_immOReg1  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg1  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm1   <= std_logic_vector(pc);
-                    S_mux_immOReg2  <= '0';		-- Immediato. Hace falta una constante.
+                    S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= E_inmediato;
                     estadoSig := PC_ACTUALIZAR;
 
