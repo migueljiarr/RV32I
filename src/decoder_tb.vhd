@@ -48,38 +48,38 @@ proc_clock: process
 	
 		wait until falling_edge(E_reloj);
 
-		E_instruccion <= X"00f00313"; -- addi t1,x0,15
+		E_instruccion <= X"00f00313"; -- addi R6,x0,15
 		wait until falling_edge(E_reloj);
 		assert S_reg_sel1 = R0 report "wrong rs1 decoded" severity failure;
-		assert S_reg_dest = T1 report "wrong rd decoded" severity failure;
+		assert S_reg_dest = R6 report "wrong rd decoded" severity failure;
 		assert to_integer(signed(S_inmediato)) = 15 report "wrong immediate decoded" severity failure;
 	
 		
-		E_instruccion <= X"006282b3"; -- add t0,t0,t1
+		E_instruccion <= X"006282b3"; -- add R5,R5,R6
 		wait until falling_edge(E_reloj);
-		assert S_reg_sel1 = T0 report "wrong rs1 decoded" severity failure;
-		assert S_reg_sel2 = T1 report "wrong rs2 decoded" severity failure;
-		assert S_reg_dest = T0 report "wrong rd decoded" severity failure;
+		assert S_reg_sel1 = R5 report "wrong rs1 decoded" severity failure;
+		assert S_reg_sel2 = R6 report "wrong rs2 decoded" severity failure;
+		assert S_reg_dest = R5 report "wrong rd decoded" severity failure;
 		
 		
-		E_instruccion <= X"00502e23"; -- sw t0,28(x0)
+		E_instruccion <= X"00502e23"; -- sw R5,28(x0)
 		wait until falling_edge(E_reloj);
 		assert S_reg_sel1 = R0 report "wrong rs1 decoded" severity failure;
-		assert S_reg_sel2 = T0 report "wrong rs2 decoded" severity failure;
+		assert S_reg_sel2 = R5 report "wrong rs2 decoded" severity failure;
 		assert to_integer(signed(S_inmediato)) = 28 report "wrong immediate decoded" severity failure;
 
 		
-		E_instruccion <= X"e0502023"; -- sw t0,-512(x0)
+		E_instruccion <= X"e0502023"; -- sw R5,-512(x0)
 		wait until falling_edge(E_reloj);
 		assert S_reg_sel1 = R0 report "wrong rs1 decoded" severity failure;
-		assert S_reg_sel2 = T0 report "wrong rs2 decoded" severity failure;
+		assert S_reg_sel2 = R5 report "wrong rs2 decoded" severity failure;
 		assert to_integer(signed(S_inmediato)) = -512 report "wrong immediate decoded" severity failure;
 	
 
-		E_instruccion <= X"01c02283"; -- lw t0,28(x0)
+		E_instruccion <= X"01c02283"; -- lw R5,28(x0)
 		wait until falling_edge(E_reloj);
 		assert S_reg_sel1 = R0 report "wrong rs1 decoded" severity failure;
-		assert S_reg_dest = T0 report "wrong rd decoded" severity failure;
+		assert S_reg_dest = R5 report "wrong rd decoded" severity failure;
 		assert to_integer(signed(S_inmediato)) = 28 report "wrong immediate decoded" severity failure;
 
 
@@ -96,17 +96,17 @@ proc_clock: process
 		assert to_integer(signed(S_inmediato)) = -20 report "wrong immediate decoded" severity failure;
 
 		
-		E_instruccion <= X"f0f0f2b7"; -- lui t0,0xf0f0f
+		E_instruccion <= X"f0f0f2b7"; -- lui R5,0xf0f0f
 		wait until falling_edge(E_reloj);
 		assert S_reg_sel1 = R1 report "wrong rs1 decoded" severity failure;
-		assert S_reg_dest = T0 report "wrong rd decoded" severity failure;
+		assert S_reg_dest = R5 report "wrong rd decoded" severity failure;
 		assert S_inmediato = X"f0f0f000" report "wrong immediate decoded" severity failure;
 
 		
-		E_instruccion <= X"fe7316e3"; -- bne t1,t2,4 (from 0x18)
+		E_instruccion <= X"fe7316e3"; -- bne R6,R7,4 (from 0x18)
 		wait until falling_edge(E_reloj);
-		assert S_reg_sel1 = T1 report "wrong rs1 decoded" severity failure;
-		assert S_reg_sel2 = T2 report "wrong rs2 decoded" severity failure;
+		assert S_reg_sel1 = R6 report "wrong rs1 decoded" severity failure;
+		assert S_reg_sel2 = R7 report "wrong rs2 decoded" severity failure;
 		assert to_integer(signed(S_inmediato)) = -20 report "wrong immediate decoded" severity failure;
 
 		
