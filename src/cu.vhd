@@ -18,27 +18,22 @@ entity cu is
 	-- Entradas desde la RAM.
         E_ram_bDat:	in std_logic_vector(XLEN-1 downto 0);
 
-	-- Entradas desde la RAM.
-        --E_reg_x1:	in std_logic_vector(XLEN-1 downto 0);
-
 	-- Entradas desde el decoder.
         E_codigoOp:	in std_logic_vector(4 downto 0);
         E_fun3:		in std_logic_vector(2 downto 0);
         E_fun7:		in std_logic_vector(6 downto 0);
-	E_reg_sel1:      in std_logic_vector(log2XLEN-1 downto 0);
-        E_reg_sel2:      in std_logic_vector(log2XLEN-1 downto 0);
-        E_reg_dest:      in std_logic_vector(log2XLEN-1 downto 0);
+	E_reg_sel1:     in std_logic_vector(log2XLEN-1 downto 0);
+        E_reg_sel2:     in std_logic_vector(log2XLEN-1 downto 0);
+        E_reg_dest:     in std_logic_vector(log2XLEN-1 downto 0);
         E_inmediato:	in std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
 
-	-- Al final vamos a poner la Alu con act?
-        -- enable signals for components
+	-- Salidas hacia la ALU.
         S_alu_act:	out std_logic;
+        S_alu_op:	out std_logic_vector(2 downto 0);
+
+	-- Salidas hacia la decoder.
         S_decoder_act:	out std_logic;
         S_instruccion:	out std_logic_vector(XLEN-1 downto 0);
-
-        -- op selection for devices
-        S_alu_op:	out aluops_t;
-
 
 	-- Salidas hacia los multiplexores de entrada a la ALU.
         S_mux_immOReg1:	out std_logic;
