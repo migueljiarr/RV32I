@@ -30,6 +30,7 @@ entity cu is
         E_reg_dest:      in std_logic_vector(log2XLEN-1 downto 0);
         E_inmediato:	in std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
 
+	-- Al final vamos a poner la Alu con act?
         -- enable signals for components
         S_alu_act:	out std_logic;
         S_decoder_act:	out std_logic;
