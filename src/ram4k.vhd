@@ -42,20 +42,22 @@ architecture Behavioral of ram4k is
 begin
 
 	process (I_CLK, I_Enable)
+		variable busy: std_logic := '0';
 	begin
 		-- Si es flanco de subida y se le permite actuar, pone su bit de ocupado a 1, sino a 0
 		if rising_edge(I_CLK) then
 			if (I_Enable = '1') then
-				O_Busy <= '1';
+				busy := '1';
 				--En caso de poder actuar, si es escritura/lectura a 1, escribe en la ram, sino, saca un dato en la dirección proporcionada
 				if (I_WR = '1') then
 					ram(to_integer(unsigned(I_Address(ADDRLEN-1 downto 0)))) <= I_Data;
 				else
 					O_Data <= ram(to_integer(unsigned(I_Address(ADDRLEN-1 downto 0))));
 				end if;
-				O_Busy <= '0';
+				busy := '0';
 			end if;
 		end if;
+		O_Busy <= busy;
 	end process;
 
 end Behavioral;
