@@ -29,7 +29,7 @@ entity cu is
 
 	-- Salidas hacia la ALU.
         S_alu_act:	out std_logic;
-        S_alu_op:	out std_logic_vector(2 downto 0);
+        S_alu_op:	out aluops_t;
 
 	-- Salidas hacia la decoder.
         S_decoder_act:	out std_logic;
@@ -52,7 +52,6 @@ entity cu is
         S_reg_op:	out std_logic;
         S_reg_sel1:	out std_logic_vector(log2XLEN-1 downto 0);
         S_reg_sel2:	out std_logic_vector(log2XLEN-1 downto 0);
-        S_reg_selD:	out std_logic_vector(log2XLEN-1 downto 0);
         S_reg_dato:	out std_logic_vector(XLEN-1 downto 0)
     );
 end cu;
@@ -200,7 +199,7 @@ begin
 		    -- tamaño indicado en la instrucción.
                     S_reg_act	<= '1';
                     S_reg_op	<= LEER;		-- Leer. Hace falta crear una constante.
-                    S_reg_selD	<= E_reg_dest;
+                    S_reg_sel1	<= E_reg_dest;
                     case E_fun3 is
                         when FUNC_LB	=>  S_reg_dato <= std_logic_vector(resize(signed(E_ram_bDat(7 downto 0)), XLEN));
                         when FUNC_LH	=>  S_reg_dato <= std_logic_vector(resize(signed(E_ram_bDat(15 downto 0)), XLEN));
@@ -268,7 +267,7 @@ begin
                     -- Escribimos la dirección de retorno en el fichero de registros.
                     S_reg_act	<= '1';
                     S_reg_op    <= ESCRIBIR;         -- Escribir. Hace falta crear una constante.
-                    S_reg_selD  <= E_reg_dest;
+                    S_reg_sel1  <= E_reg_dest;
                     S_reg_dato  <= E_resultado;
                     estadoSig := PC_INMEDIATO;
                 
@@ -287,7 +286,7 @@ begin
                     -- Equivalente a JAL2.
                     S_reg_act	<= '1';
                     S_reg_op    <= ESCRIBIR;         -- Escribir. Hace falta crear una constante.
-                    S_reg_selD  <= E_reg_dest;
+                    S_reg_sel1  <= E_reg_dest;
                     S_reg_dato  <= E_resultado;
                     estadoSig := PC_REG_INMEDIATO;
                 
@@ -369,7 +368,7 @@ begin
                 when LUI =>
                     S_reg_act	<= '1';
                     S_reg_op	<= ESCRIBIR;		-- Escribir. Hace falta crear una constante.
-                    S_reg_selD	<= E_reg_dest;
+                    S_reg_sel1	<= E_reg_dest;
                     S_reg_dato	<= E_inmediato;
                     estadoSig	:= PC_NEXT;
                 
@@ -386,7 +385,7 @@ begin
                 when WRITE_REG =>
                     S_reg_act	<= '1';
                     S_reg_op	<= ESCRIBIR;		-- Escribir. Hace falta crear una constante.
-                    S_reg_selD	<= E_reg_dest;
+                    S_reg_sel1	<= E_reg_dest;
                     S_reg_dato	<= E_resultado;
                     estadoSig	:= PC_NEXT;
                 
@@ -406,7 +405,7 @@ begin
                     S_reg_sel1	    <= E_reg_sel1;
                     S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= E_inmediato;
-                    estadoSig := PC_ACTUALIZAR;
+                    estadoSig	    := PC_ACTUALIZAR;
                 
                 when PC_INMEDIATO =>
 		    -- Pedimos a la ALU que calcule la dirección de salto.
@@ -418,10 +417,10 @@ begin
                     S_mux_datImm1   <= std_logic_vector(pc);
                     S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= E_inmediato;
-                    estadoSig := PC_ACTUALIZAR;
+                    estadoSig	    := PC_ACTUALIZAR;
 
                 when PC_ACTUALIZAR =>
-		    pc	<= pc + unsigned(E_resultado);
+		    pc	<= E_resultado;
                     estadoSig := FETCH;
                     
             end case;
