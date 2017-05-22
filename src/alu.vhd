@@ -90,10 +90,10 @@ begin
 		eor := op1 xor op2;
 		--lt := (sub(XLEN) xor eor(XLEN-1)) = '1';
 		
-	case (funcion) is
-		when ALU_ADD 	=> resultado <= 	add(XLEN-1 downto 0);
+	case funcion is
+		when ALU_ADD 	=> resultado <= add(XLEN-1 downto 0);
 		when ALU_ADDU	=> resultado <= addu(XLEN-1 downto 0);
-		when ALU_SUB	=> resultado <= 	sub(XLEN-1 downto 0);
+		when ALU_SUB	=> resultado <= sub(XLEN-1 downto 0);
 		when ALU_SUBU 	=> resultado <= subu(XLEN-1 downto 0);
 		when ALU_AND 	=> resultado <= op1 and op2;
 		when ALU_OR 	=> resultado <= op1 or op2;
@@ -103,6 +103,7 @@ begin
 		when ALU_SLL	=> resultado <= result_lsft;
 		when ALU_SRL 	=> resultado <= result_rlsft;
 		when ALU_SRA 	=> resultado <= result_rasft;
+		when others	=> resultado <= X"ffffffff";
 	end case;
 	
 	end process;

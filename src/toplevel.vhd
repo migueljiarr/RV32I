@@ -25,9 +25,9 @@ architecture estructural of cpu_ram_toplevel is
 	    E_codigoOp:     in std_logic_vector(4 downto 0);
 	    E_fun3:         in std_logic_vector(2 downto 0);
 	    E_fun7:         in std_logic_vector(6 downto 0);
-	    E_reg_sel1:      in std_logic_vector(log2XLEN-1 downto 0);
-	    E_reg_sel2:      in std_logic_vector(log2XLEN-1 downto 0);
-	    E_reg_dest:      in std_logic_vector(log2XLEN-1 downto 0);
+	    E_reg_sel1:     in std_logic_vector(log2XLEN-1 downto 0);
+	    E_reg_sel2:     in std_logic_vector(log2XLEN-1 downto 0);
+	    E_reg_dest:     in std_logic_vector(log2XLEN-1 downto 0);
 	    E_inmediato:    in std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
 	    S_alu_act:      out std_logic;
 	    S_decoder_act:  out std_logic;
@@ -96,6 +96,15 @@ architecture estructural of cpu_ram_toplevel is
 	    --S_OCUPADO: out std_logic --BIT QUE INDICA SI SE ESTA HACIENDO UNA ACCION O NO. Indica si la tarea se ha acabado
 	);
     end component;
+
+    component mux2a1
+	port(
+	    i0	: in    std_logic_vector(XLEN-1 downto 0);
+	    i1	: in    std_logic_vector(XLEN-1 downto 0);
+	    s   : in    std_logic;
+            o	: out   std_logic_vector(XLEN-1 downto 0)
+	);
+    end component;
 	
 
     -- Señales:
@@ -116,15 +125,17 @@ architecture estructural of cpu_ram_toplevel is
     signal reg_sel2:	    std_logic_vector(log2XLEN-1 downto 0);
     signal reg_selD:	    std_logic_vector(log2XLEN-1 downto 0);
     signal reg_dato:	    std_logic_vector(XLEN-1 downto 0);	
-    signal reg_inmediato1:  std_logic_vector(XLEN-1 downto 0);	
-    signal reg_inmediato2:  std_logic_vector(XLEN-1 downto 0);	
     signal mux_alu_sel1:    std_logic;
     signal mux_alu_sel2:    std_logic;
+    signal reg_dat1:	    std_logic_vector(XLEN-1 downto 0);
+    signal reg_dat2:	    std_logic_vector(XLEN-1 downto 0);
 	
     -- ALU.
     signal alu_resultado: std_logic_vector(XLEN-1 downto 0);
     signal alu_act: std_logic := '0';
-    signal alu_op: std_logic_vector(2 downto 0);
+    signal alu_op: std_logic_vector(3 downto 0);
+    signal alu_dat1: std_logic_vector (XLEN-1 downto 0);
+    signal alu_dat2: std_logic_vector (XLEN-1 downto 0);
 
     -- Decoder.
     signal dec_act: std_logic := '0';
@@ -135,16 +146,12 @@ architecture estructural of cpu_ram_toplevel is
     signal dec_codigoOp:    std_logic_vector(4 downto 0);
     signal dec_fun3:	    std_logic_vector(2 downto 0);
     signal dec_fun7:	    std_logic_vector(6 downto 0);
-    signal dec_instruccion: std_logic_vector(6 downto 0);
+    signal dec_instruccion: std_logic_vector(XLEN-1 downto 0);
 	
     -- CU.
     signal act: std_logic := '1';
-    signal uc_aluop: std_logic_vector(3 downto 0);
-    signal uc_aluen: std_logic := '0';
-    signal uc_alu_op1: std_logic_vector(XLEN -1 downto 0);
-    signal mux_alu_dat1_output: std_logic_vector (XLEN-1 downto 0);
-    signal mux_alu_dat2_output: std_logic_vector (XLEN-1 downto 0);
-    signal resultado_alu: std_logic_vector (XLEN-1 downto 0);
+    signal uc_inmediato1:  std_logic_vector(XLEN-1 downto 0);	
+    signal uc_inmediato2:  std_logic_vector(XLEN-1 downto 0);	
  
 
 begin
@@ -156,7 +163,7 @@ begin
 	E_act => act,
 
 	-- Aqui hay que meter la signal que recoja todos los busy
-	E_ocupado =>  '0', --(alu_busy = '1' or bus_busy = '1'),
+	--E_ocupado =>  '0', --(alu_busy = '1' or bus_busy = '1'),
 
 	E_resultado	=>  alu_resultado,
 	E_codigoOp	=>  dec_codigoOp,
@@ -173,8 +180,8 @@ begin
 	S_alu_op	=>  alu_op,
 	S_mux_immOReg1	=>  mux_alu_sel1,
 	S_mux_immOReg2	=>  mux_alu_sel2,
-	S_mux_datImm1	=>  reg_inmediato1,
-	S_mux_datImm2	=>  reg_inmediato2,
+	S_mux_datImm1	=>  uc_inmediato1,
+	S_mux_datImm2	=>  uc_inmediato2,
 	S_ram_op	=>  ram_op,
 	S_ram_act	=>  ram_act,
 	S_ram_bDir	=>  ram_bDir_E,
@@ -201,44 +208,53 @@ begin
     );
 
     I_alu: entity work.alu port map(
-	enable => uc_aluen,
+	enable	    => alu_act,
+	op1	    => alu_dat1,
+	op2	    => alu_dat2,
+	funcion	    => alu_op,
+	resultado   => alu_resultado
 	--I_reset => RST_I,
-	op1 => mux_alu_dat1_output,
-	op2 => mux_alu_dat2_output,
-	funcion => uc_aluop,
 	--O_busy => alu_busy,
-	resultado => resultado_alu
-	--O_lt => alu_lt,
-	--O_ltu => alu_ltu,
-	--O_eq => alu_eq
+	--O_lt	=> alu_lt,
+	--O_ltu	=> alu_ltu,
+	--O_eq	=> alu_eq
     );
 	 
-    mux1 : entity work.components.mux2a1 port map(
-	i0	=> ;
-	i1	=>	;
-	s	=> reg_inmediato1;
-	o  => mux_alu_dat1_output;
+    I_mux1: mux2a1 port map(
+	i0  =>	uc_inmediato1,
+	i1  =>	reg_dat1,
+	s   =>	mux_alu_sel1,
+	o   =>	alu_dat1
     );
 	 
-    mux2 : entity work.components.mux2a1 port map(
-	i0	=> ;
-	i1	=>	;
-	s	=> reg_inmediato2;
-	o  => mux_alu_dat2_output;
+    I_mux2: mux2a1 port map(
+	i0  =>	uc_inmediato2,
+	i1  =>	reg_dat2,
+	s   =>	mux_alu_sel2,
+	o   =>	alu_dat2
     );
 		
-    I_reg: entity work.registros port map(
-	I_clk => E_reloj,
-	I_en => uc_regen,
-	I_op => uc_regop,
-	I_selS1 => dec_rs1,
-	I_selS2 => dec_rs2,
-	I_selD => dec_rd,
-	I_data => mux_reg_data_output,
-	O_dataS1 => reg_dataS1,
-	O_dataS2 => reg_dataS2
+    I_reg: registros port map(
+	E_Reloj	    => E_reloj,
+	E_Enable    => reg_act,
+	E_CodOp	    => reg_op,
+	E_Sel1	    => reg_sel1,
+	E_Sel2	    => reg_sel2,
+	--I_selD	    => reg_selD,
+	E_Dato	    => reg_dato,
+	S_Registro1 => reg_dat1,
+	S_Registro2 => reg_dat2
     );
 	
+    I_ram: ram4k port map(
+	I_CLK	    =>	E_reloj,
+	I_Enable    =>	ram_act,
+	I_WR	    =>	ram_op,
+	I_Address   =>	ram_bDir_E,
+	I_Data	    =>	ram_bDat_E,
+	O_Data	    =>	ram_bDat_S
+	--O_Busy: out std_logic
+    );
 	
     -- Proceso vacío para que todo ocurra secuencialmente
     -- a partir de la señal de reloj.

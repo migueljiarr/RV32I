@@ -92,18 +92,18 @@ constant R31:	std_logic_vector(4 downto 0) := "11111";
 
 attribute enum_encoding : string;
 
-constant ALU_ADD:		std_logic_vector(3 downto 0) := "0000";
-constant ALU_ADDU:	std_logic_vector(3 downto 0) := "0001";
-constant ALU_SUB:		std_logic_vector(3 downto 0) := "0010";
-constant ALU_SUBU:	std_logic_vector(3 downto 0) := "1011";
-constant ALU_AND:		std_logic_vector(3 downto 0) := "1010";
-constant ALU_OR:		std_logic_vector(3 downto 0) := "0011";
-constant ALU_XOR:		std_logic_vector(3 downto 0) := "0100";
-constant ALU_SLT:		std_logic_vector(3 downto 0) := "0101";
-constant ALU_SLTU:	std_logic_vector(3 downto 0) := "0110";
-constant ALU_SLL:		std_logic_vector(3 downto 0) := "0111";
-constant ALU_SRL:		std_logic_vector(3 downto 0) := "1000";
-constant ALU_SRA:		std_logic_vector(3 downto 0) := "1001";
+constant ALU_ADD:   std_logic_vector(3 downto 0) := "0000";
+constant ALU_ADDU:  std_logic_vector(3 downto 0) := "0001";
+constant ALU_SUB:   std_logic_vector(3 downto 0) := "0010";
+constant ALU_SUBU:  std_logic_vector(3 downto 0) := "1011";
+constant ALU_AND:   std_logic_vector(3 downto 0) := "1010";
+constant ALU_OR:    std_logic_vector(3 downto 0) := "0011";
+constant ALU_XOR:   std_logic_vector(3 downto 0) := "0100";
+constant ALU_SLT:   std_logic_vector(3 downto 0) := "0101";
+constant ALU_SLTU:  std_logic_vector(3 downto 0) := "0110";
+constant ALU_SLL:   std_logic_vector(3 downto 0) := "0111";
+constant ALU_SRL:   std_logic_vector(3 downto 0) := "1000";
+constant ALU_SRA:   std_logic_vector(3 downto 0) := "1001";
 
 
 -- Operaciones de registros.
