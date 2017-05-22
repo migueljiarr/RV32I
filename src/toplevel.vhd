@@ -68,6 +68,38 @@ architecture estructural of cpu_ram_toplevel is
 	    S_fun7:         out std_logic_vector(6 downto 0)
 	);
     end component;
+	 
+	 component ram4k
+	 	port (
+		I_CLK, I_Enable, I_WR: in std_logic;
+		I_Address, I_Data: in std_logic_vector(XLEN-1 downto 0);
+		O_Data: out std_logic_vector(XLEN-1 downto 0)
+		--O_Busy: out std_logic
+	);
+	end component;
+	
+	component alu
+	port(
+			funcion: in std_logic_vector(3 downto 0);
+			op1, op2: in std_logic_vector(XLEN-1 downto 0);
+			enable: in std_logic;
+			resultado: out std_logic_vector(XLEN-1 downto 0):= XLEN_CERO
+	);
+	end component;
+	
+	component registros
+		Port(
+		E_Reloj: in std_logic;
+		E_Enable: in std_logic;
+		E_CodOP: in std_logic;
+		E_Sel1: in std_logic_vector(4 downto 0);-- Seleccion del primer registro. Se usa tambien para indicar destino en el SW
+		E_Sel2: in std_logic_vector(4 downto 0);-- Seleccion del segundo registro. 
+		E_Dato: in std_logic_vector(XLEN-1 downto 0); -- Dato a guardar para el SW
+		S_Registro1: out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO; -- Salida registro 1 (LW)
+		S_Registro2: out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO  -- Salida registro 2 (LW)
+		--S_OCUPADO: out std_logic --BIT QUE INDICA SI SE ESTA HACIENDO UNA ACCION O NO. Indica si la tarea se ha acabado
+	);
+	end component;
 	
     --Component unBonitoNombre
 	--port(
@@ -87,7 +119,7 @@ architecture estructural of cpu_ram_toplevel is
 
     -- Registros y mux.
     signal reg_act:	    std_logic := '0';
-    signal reg_op:	    regops_t;
+    signal reg_op:	    std_logic;
     signal reg_sel1:	    std_logic_vector(log2XLEN-1 downto 0);
     signal reg_sel2:	    std_logic_vector(log2XLEN-1 downto 0);
     signal reg_selD:	    std_logic_vector(log2XLEN-1 downto 0);
@@ -115,6 +147,14 @@ architecture estructural of cpu_ram_toplevel is
 	
     -- CU.
     signal act: std_logic := '1';
+	 signal uc_aluop: std_logic_vector(3 downto 0);
+	 signal uc_aluen: std_logic := '0';
+	 signal uc_alu_op1: std_logic_vector(XLEN -1 downto 0);
+	 signal mux_alu_dat1_output: std_logic_vector (XLEN-1 downto 0);
+	 signal mux_alu_dat2_output: std_logic_vector (XLEN-1 downto 0);
+	 signal resultado_alu: std_logic_vector (XLEN-1 downto 0);
+	 
+	 
 
 begin
 
@@ -125,7 +165,7 @@ begin
 	E_act => act,
 
 	-- Aqui hay que meter la signal que recoja todos los busy
-	E_ocupado => (alu_busy = '1' or bus_busy = '1'),
+	E_ocupado =>  '0', --(alu_busy = '1' or bus_busy = '1'),
 
 	E_resultado	=>  alu_resultado,
 	E_codigoOp	=>  dec_codigoOp,
@@ -171,72 +211,36 @@ begin
 
     -- Esto no se toca hasta que esté la ALU terminada.
     I_alu: entity work.alu port map(
-	-- Provisional. Deberíamos tener más o menos la misma politica de nombres.
-	funcion	=>	uc_aluop,
-        --op		=>	,
-	--op		=>	, 
-        --enabl	=>	,
-        --resultado	=>	,
 
-	-- Antiguo.
-	I_clk => E_reloj,
-	I_en => uc_aluen,
-	I_reset => RST_I,
-	I_dataS1 => mux_alu_dat1_output,
-	I_dataS2 => mux_alu_dat2_output,
-	I_aluop => uc_aluop,
-	O_busy => alu_busy,
-	O_data => resultado_alu,
-	O_lt => alu_lt,
-	O_ltu => alu_ltu,
-	O_eq => alu_eq
+	enable => uc_aluen,
+	--I_reset => RST_I,
+	op1 => mux_alu_dat1_output,
+	op2 => mux_alu_dat2_output,
+	funcion => uc_aluop,
+	--O_busy => alu_busy,
+	resultado => resultado_alu
+	--O_lt => alu_lt,
+	--O_ltu => alu_ltu,
+	--O_eq => alu_eq
     );
-	
-
-	-- Esto hay que mirarlo muy despacio ¿Hemos visto los generic map?
-	-- Si. Buen sitio para responder, lo se.
-	mux_alu_dat1: entity work.mux
-	generic map(
-		PORTS => MUX_ALU_DAT1_PORTS
-	)
-	port map(
-		I_inputs => mux_alu_dat1_input,
-		I_sel => uc_mux_alu_dat1_sel,
-		O_output => mux_alu_dat1_output
-	);
-	
-	mux_alu_dat2: entity work.mux
-	generic map(
-		PORTS => MUX_ALU_DAT2_PORTS
-	)
-	port map(
-		I_inputs => mux_alu_dat2_input,
-		I_sel => uc_mux_alu_dat2_sel,
-		O_output => mux_alu_dat2_output
-	);
-	
-	mux_bus_addr: entity work.mux
-	generic map(
-		PORTS => MUX_BUS_ADDR_PORTS
-	)
-	port map(
-		I_inputs => mux_bus_addr_input,
-		I_sel => uc_mux_bus_addr_sel,
-		O_output => mux_bus_addr_output
-	);
-	
-	mux_reg_data: entity work.mux
-	generic map(
-		PORTS => MUX_REG_DATA_PORTS
-	)
-	port map(
-		I_inputs => mux_reg_data_input,
-		I_sel => uc_mux_reg_data_sel,
-		O_output => mux_reg_data_output
-	);
-	
+	 
+	 mux1 : entity work.components.mux2a1 port map(
+		i0	=> ;
+		i1	=>	;
+		s	=> reg_inmediato1;
+		o  => mux_alu_dat1_output;
+    );
+	 
+	 mux2 : entity work.components.mux2a1 port map(
+		i0	=> ;
+		i1	=>	;
+		s	=> reg_inmediato2;
+		o  => mux_alu_dat2_output;
+    );
+	 
+		
     -- Esto no se toca hasta que estén los registros hechos
-    I_reg: entity work.registers port map(
+    I_reg: entity work.registros port map(
 	I_clk => E_reloj,
 	I_en => uc_regen,
 	I_op => uc_regop,

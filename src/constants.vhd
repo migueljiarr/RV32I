@@ -43,7 +43,7 @@ constant FUNC_SLLI:	    std_logic_vector(2 downto 0) := "001";
 constant FUNC_SLTI:	    std_logic_vector(2 downto 0) := "010";
 constant FUNC_SLTIU:	    std_logic_vector(2 downto 0) := "011";
 constant FUNC_XORI:	    std_logic_vector(2 downto 0) := "100";
-constant FUNC_SRLI_SRAI:    std_logic_vector(2 downto 0) := "101";
+constant FUNC_SRLI_SRAI:	std_logic_vector(2 downto 0) := "101";
 constant FUNC_ORI:	    std_logic_vector(2 downto 0) := "110";
 constant FUNC_ANDI:	    std_logic_vector(2 downto 0) := "111";
 
@@ -92,10 +92,18 @@ constant R31:	std_logic_vector(4 downto 0) := "11111";
 
 attribute enum_encoding : string;
 
-    -- NECESARIOS???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????Operaciones de la ALU.
--- Pasar  los estados a constantes
-type aluops_t is (ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLT, ALU_SLTU, ALU_SLL, ALU_SRL, ALU_SRA);
---attribute enum_encoding of aluops_t : type is "sequential";
+constant ALU_ADD:		std_logic_vector(3 downto 0) := "0000";
+constant ALU_ADDU:	std_logic_vector(3 downto 0) := "0001";
+constant ALU_SUB:		std_logic_vector(3 downto 0) := "0010";
+constant ALU_SUBU:	std_logic_vector(3 downto 0) := "1011";
+constant ALU_AND:		std_logic_vector(3 downto 0) := "1010";
+constant ALU_OR:		std_logic_vector(3 downto 0) := "0011";
+constant ALU_XOR:		std_logic_vector(3 downto 0) := "0100";
+constant ALU_SLT:		std_logic_vector(3 downto 0) := "0101";
+constant ALU_SLTU:	std_logic_vector(3 downto 0) := "0110";
+constant ALU_SLL:		std_logic_vector(3 downto 0) := "0111";
+constant ALU_SRL:		std_logic_vector(3 downto 0) := "1000";
+constant ALU_SRA:		std_logic_vector(3 downto 0) := "1001";
 
 
 -- Operaciones de registros.
