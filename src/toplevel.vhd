@@ -31,12 +31,10 @@ architecture estructural of cpu_ram_toplevel is
 	    E_inmediato:    in std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
 
         -- Al final vamos a poner la Alu con act?
-        -- enable signals for components
 	    S_alu_act:      out std_logic;
 	    S_decoder_act:  out std_logic;
 	    S_instruccion:  out std_logic_vector(XLEN-1 downto 0);
 
-        -- op selection for devices
 	    S_alu_op:       out std_logic_vector(2 downto 0);
 
 	    S_mux_immOReg1: out std_logic;
@@ -77,6 +75,8 @@ architecture estructural of cpu_ram_toplevel is
     --end component;
 
     -- Señales:
+    -- Poner a cada componente un busy o poner un busy comun?
+    signal busy: 	std_logic := '0';
 
     -- RAM.
     signal ram_act:	std_logic := '0';
