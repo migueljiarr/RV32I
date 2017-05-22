@@ -29,14 +29,10 @@ architecture estructural of cpu_ram_toplevel is
 	    E_reg_sel2:      in std_logic_vector(log2XLEN-1 downto 0);
 	    E_reg_dest:      in std_logic_vector(log2XLEN-1 downto 0);
 	    E_inmediato:    in std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
-
-        -- Al final vamos a poner la Alu con act?
 	    S_alu_act:      out std_logic;
 	    S_decoder_act:  out std_logic;
 	    S_instruccion:  out std_logic_vector(XLEN-1 downto 0);
-
-	    S_alu_op:       out std_logic_vector(2 downto 0);
-
+	    S_alu_op:       out std_logic_vector(3 downto 0);
 	    S_mux_immOReg1: out std_logic;
 	    S_mux_immOReg2: out std_logic;
 	    S_mux_datImm1:  out std_logic_vector(XLEN-1 downto 0);
@@ -69,42 +65,38 @@ architecture estructural of cpu_ram_toplevel is
 	);
     end component;
 	 
-	 component ram4k
-	 	port (
-		I_CLK, I_Enable, I_WR: in std_logic;
-		I_Address, I_Data: in std_logic_vector(XLEN-1 downto 0);
-		O_Data: out std_logic_vector(XLEN-1 downto 0)
-		--O_Busy: out std_logic
+    component ram4k
+	port (
+	    I_CLK, I_Enable, I_WR: in std_logic;
+	    I_Address, I_Data: in std_logic_vector(XLEN-1 downto 0);
+	    O_Data: out std_logic_vector(XLEN-1 downto 0)
+	    --O_Busy: out std_logic
 	);
-	end component;
+    end component;
 	
-	component alu
+    component alu
 	port(
-			funcion: in std_logic_vector(3 downto 0);
-			op1, op2: in std_logic_vector(XLEN-1 downto 0);
-			enable: in std_logic;
-			resultado: out std_logic_vector(XLEN-1 downto 0):= XLEN_CERO
+    	 funcion: in std_logic_vector(3 downto 0);
+    	 op1, op2: in std_logic_vector(XLEN-1 downto 0);
+    	 enable: in std_logic;
+    	 resultado: out std_logic_vector(XLEN-1 downto 0):= XLEN_CERO
 	);
-	end component;
+    end component;
 	
-	component registros
-		Port(
-		E_Reloj: in std_logic;
-		E_Enable: in std_logic;
-		E_CodOP: in std_logic;
-		E_Sel1: in std_logic_vector(4 downto 0);-- Seleccion del primer registro. Se usa tambien para indicar destino en el SW
-		E_Sel2: in std_logic_vector(4 downto 0);-- Seleccion del segundo registro. 
-		E_Dato: in std_logic_vector(XLEN-1 downto 0); -- Dato a guardar para el SW
-		S_Registro1: out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO; -- Salida registro 1 (LW)
-		S_Registro2: out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO  -- Salida registro 2 (LW)
-		--S_OCUPADO: out std_logic --BIT QUE INDICA SI SE ESTA HACIENDO UNA ACCION O NO. Indica si la tarea se ha acabado
+    component registros
+	Port(
+	    E_Reloj: in std_logic;
+	    E_Enable: in std_logic;
+	    E_CodOP: in std_logic;
+	    E_Sel1: in std_logic_vector(4 downto 0);-- Seleccion del primer registro. Se usa tambien para indicar destino en el SW
+	    E_Sel2: in std_logic_vector(4 downto 0);-- Seleccion del segundo registro. 
+	    E_Dato: in std_logic_vector(XLEN-1 downto 0); -- Dato a guardar para el SW
+	    S_Registro1: out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO; -- Salida registro 1 (LW)
+	    S_Registro2: out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO  -- Salida registro 2 (LW)
+	    --S_OCUPADO: out std_logic --BIT QUE INDICA SI SE ESTA HACIENDO UNA ACCION O NO. Indica si la tarea se ha acabado
 	);
-	end component;
+    end component;
 	
-    --Component unBonitoNombre
-	--port(
-	--);
-    --end component;
 
     -- Señales:
     -- Poner a cada componente un busy o poner un busy comun?
@@ -147,14 +139,13 @@ architecture estructural of cpu_ram_toplevel is
 	
     -- CU.
     signal act: std_logic := '1';
-	 signal uc_aluop: std_logic_vector(3 downto 0);
-	 signal uc_aluen: std_logic := '0';
-	 signal uc_alu_op1: std_logic_vector(XLEN -1 downto 0);
-	 signal mux_alu_dat1_output: std_logic_vector (XLEN-1 downto 0);
-	 signal mux_alu_dat2_output: std_logic_vector (XLEN-1 downto 0);
-	 signal resultado_alu: std_logic_vector (XLEN-1 downto 0);
-	 
-	 
+    signal uc_aluop: std_logic_vector(3 downto 0);
+    signal uc_aluen: std_logic := '0';
+    signal uc_alu_op1: std_logic_vector(XLEN -1 downto 0);
+    signal mux_alu_dat1_output: std_logic_vector (XLEN-1 downto 0);
+    signal mux_alu_dat2_output: std_logic_vector (XLEN-1 downto 0);
+    signal resultado_alu: std_logic_vector (XLEN-1 downto 0);
+ 
 
 begin
 
@@ -209,9 +200,7 @@ begin
 	S_fun7		=>  dec_fun7
     );
 
-    -- Esto no se toca hasta que esté la ALU terminada.
     I_alu: entity work.alu port map(
-
 	enable => uc_aluen,
 	--I_reset => RST_I,
 	op1 => mux_alu_dat1_output,
@@ -224,22 +213,20 @@ begin
 	--O_eq => alu_eq
     );
 	 
-	 mux1 : entity work.components.mux2a1 port map(
-		i0	=> ;
-		i1	=>	;
-		s	=> reg_inmediato1;
-		o  => mux_alu_dat1_output;
+    mux1 : entity work.components.mux2a1 port map(
+	i0	=> ;
+	i1	=>	;
+	s	=> reg_inmediato1;
+	o  => mux_alu_dat1_output;
     );
 	 
-	 mux2 : entity work.components.mux2a1 port map(
-		i0	=> ;
-		i1	=>	;
-		s	=> reg_inmediato2;
-		o  => mux_alu_dat2_output;
+    mux2 : entity work.components.mux2a1 port map(
+	i0	=> ;
+	i1	=>	;
+	s	=> reg_inmediato2;
+	o  => mux_alu_dat2_output;
     );
-	 
 		
-    -- Esto no se toca hasta que estén los registros hechos
     I_reg: entity work.registros port map(
 	I_clk => E_reloj,
 	I_en => uc_regen,
