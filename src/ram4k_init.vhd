@@ -35,7 +35,15 @@ type store_t is array(0 to (2**ADDRLEN)-1) of std_logic_vector(XLEN-1 downto 0);
 constant RAM_INIT : store_t := (
 
 -- a la espera de las instrucciones que tiene que cargar de base la ram
-X"FFFFFFFF",
+
+-- LOAD: 00000, offset: 0, rs1: 0, funct3: 010 = LW, rd: 1:
+-- 0000 0000 0000 0000 0010 0000 1000 0000
+-- OPIMM: 00100, offset: 10, rs1: 0, funct3: 000 = ADDI, rd: 2:
+-- 0000 0000 1010 0000 0000 0001 0001 0000
+-- Tras estas dos instrucciones tendriamos 0 en R1 y 10 en R2.
+X"00002080" ,X"00A00110",
+
+X"FFFFFFFF" ,X"FFFFFFFF",
 
 others => X"00000000"
 );
