@@ -46,8 +46,8 @@ ARCHITECTURE behavior OF ram4k_tb IS
          I_WR : IN  std_logic;
          I_Address : IN  std_logic_vector(31 downto 0);
          I_Data : IN  std_logic_vector(31 downto 0);
-         O_Data : OUT  std_logic_vector(31 downto 0);
-         O_Busy : OUT  std_logic
+         --O_Busy : OUT  std_logic;
+         O_Data : OUT  std_logic_vector(31 downto 0)
         );
     END COMPONENT;
     
@@ -61,7 +61,7 @@ ARCHITECTURE behavior OF ram4k_tb IS
 
  	--Outputs
    signal O_Data : std_logic_vector(31 downto 0);
-   signal O_Busy : std_logic;
+   --signal O_Busy : std_logic;
 
    -- Clock period definitions
    constant I_CLK_period : time := 10 ns;
@@ -75,14 +75,21 @@ BEGIN
           I_WR => I_WR,
           I_Address => I_Address,
           I_Data => I_Data,
-          O_Data => O_Data,
-          O_Busy => O_Busy
+          --O_Busy => O_Busy,
+          O_Data => O_Data
         );
 
-	I_CLK<= NOT I_CLK after 5 ns when now<100 ns else I_CLK;
-	I_Enable<= '0' after 15 ns, '1' after 30 ns;
-	I_WR<= '1' after 10 ns, '0' after 30 ns, '1' after 50 ns, '0' after 70 ns;
-	I_Address<= X"00000001" after 10 ns, X"00000002" after 20 ns, X"00000001" after 30 ns, X"00000002" after 40 ns, X"00000001" after 50 ns, X"00000002" after 60 ns, X"00000001" after 70 ns, X"00000002" after 80 ns;
-	I_Data<= X"FFFF0000" after 10 ns, X"00005555" after 20 ns, X"FFFF0000" after 30 ns, X"00005555" after 40 ns, X"FFFF0000" after 50 ns, X"00005555" after 60 ns, X"FFFF0000" after 70 ns, X"00005555" after 80 ns; 
+	I_CLK	    <=	NOT I_CLK after 5 ns when now<110 ns else I_CLK;
+	I_Enable    <=	'0' after 15 ns, '1' after 30 ns;
+	I_WR	    <=	'1' after 10 ns, '0' after 30 ns,
+			'1' after 50 ns, '0' after 70 ns;
+	I_Address   <=	X"00000001" after 10 ns, X"00000002" after 20 ns, X"00000001" after 30 ns,
+			X"00000002" after 40 ns, X"00000001" after 50 ns, X"00000002" after 60 ns,
+			X"00000001" after 70 ns, X"00000002" after 80 ns, X"00000000" after 90 ns,
+			X"00000003" after 100 ns;
+	I_Data	    <=	X"FFFF0000" after 10 ns, X"00005555" after 20 ns,
+			X"FFFF0000" after 30 ns, X"00005555" after 40 ns,
+			X"FFFF0000" after 50 ns, X"00005555" after 60 ns,
+			X"FFFF0000" after 70 ns, X"00005555" after 80 ns; 
 
 END;

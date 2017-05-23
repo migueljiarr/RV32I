@@ -52,7 +52,7 @@ begin
 				if (I_WR = ESCRIBIR) then
 					ram(to_integer(unsigned(I_Address(ADDRLEN-1 downto 0)))) <= I_Data;
 				else
-					O_Data <= ram(to_integer(unsigned(I_Address(ADDRLEN-1 downto 0))));
+					O_Data <= ram(to_integer(unsigned(I_Address)));
 				end if;
 				--busy := '0';
 			end if;
