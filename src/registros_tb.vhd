@@ -12,7 +12,7 @@ ARCHITECTURE behavior OF registros_tb IS
     PORT(
          E_Reloj : IN  std_logic;
          E_Enable : IN  std_logic;
-         E_CodOP : IN  bit;
+         E_CodOP : IN  std_logic;
          E_Sel1 : IN  std_logic_vector(4 downto 0);
          E_Sel2 : IN  std_logic_vector(4 downto 0);
          E_Dato : IN  std_logic_vector(31 downto 0);
@@ -25,7 +25,7 @@ ARCHITECTURE behavior OF registros_tb IS
    --Inputs
    signal E_Reloj : std_logic := '0';
    signal E_Enable : std_logic := '0';
-   signal E_CodOP : bit := '0';
+   signal E_CodOP : std_logic := '0';
    signal E_Sel1 : std_logic_vector(4 downto 0) := (others => '0');
    signal E_Sel2 : std_logic_vector(4 downto 0) := (others => '0');
    signal E_Dato : std_logic_vector(31 downto 0) := (others => '0');

@@ -90,30 +90,25 @@ constant R29:	std_logic_vector(4 downto 0) := "11101";
 constant R30:	std_logic_vector(4 downto 0) := "11110";
 constant R31:	std_logic_vector(4 downto 0) := "11111";
 
-attribute enum_encoding : string;
-
+-- Operaciones de la ALU.
 constant ALU_ADD:   std_logic_vector(3 downto 0) := "0000";
 constant ALU_ADDU:  std_logic_vector(3 downto 0) := "0001";
 constant ALU_SUB:   std_logic_vector(3 downto 0) := "0010";
-constant ALU_SUBU:  std_logic_vector(3 downto 0) := "1011";
-constant ALU_AND:   std_logic_vector(3 downto 0) := "1010";
-constant ALU_OR:    std_logic_vector(3 downto 0) := "0011";
-constant ALU_XOR:   std_logic_vector(3 downto 0) := "0100";
-constant ALU_SLT:   std_logic_vector(3 downto 0) := "0101";
-constant ALU_SLTU:  std_logic_vector(3 downto 0) := "0110";
-constant ALU_SLL:   std_logic_vector(3 downto 0) := "0111";
-constant ALU_SRL:   std_logic_vector(3 downto 0) := "1000";
-constant ALU_SRA:   std_logic_vector(3 downto 0) := "1001";
+constant ALU_SUBU:  std_logic_vector(3 downto 0) := "0011";
+constant ALU_AND:   std_logic_vector(3 downto 0) := "0100";
+constant ALU_OR:    std_logic_vector(3 downto 0) := "0101";
+constant ALU_XOR:   std_logic_vector(3 downto 0) := "0110";
+constant ALU_SLT:   std_logic_vector(3 downto 0) := "0111";
+constant ALU_SLTU:  std_logic_vector(3 downto 0) := "1000";
+constant ALU_SLL:   std_logic_vector(3 downto 0) := "1001";
+constant ALU_SRL:   std_logic_vector(3 downto 0) := "1010";
+constant ALU_SRA:   std_logic_vector(3 downto 0) := "1011";
 
-
--- Operaciones de registros.
---Pasar los estados a constantes?
-type regops_t is (REGOP_READ, REGOP_WRITE);
-attribute enum_encoding of regops_t : type is "sequential";
-
+-- Operaciones de los registros y de la RAM.
 constant LEER:	    std_logic := '0';
 constant ESCRIBIR:  std_logic := '1';
 
+-- Seleccion de los multiplexores de entrada a la ALU.
 constant INMEDIATO: std_logic := '0';
 constant REGISTRO:  std_logic := '1';
 
