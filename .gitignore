@@ -51,3 +51,5 @@ ram4k
 ram4k_tb
 registros
 registros_tb
+toplevel
+toplevel_tb
