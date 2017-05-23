@@ -10,7 +10,7 @@ entity cu is
 	-- Entradas generales.
         E_reloj:	in std_logic;
         E_act:		in std_logic;
-        E_ocupado:	in std_logic;
+        --E_ocupado:	in std_logic;
 
 	-- Entradas desde la ALU.
         E_resultado:	in std_logic_vector(XLEN-1 downto 0);
@@ -29,7 +29,7 @@ entity cu is
 
 	-- Salidas hacia la ALU.
         S_alu_act:	out std_logic;
-        S_alu_op:	out aluops_t;
+        S_alu_op:	out std_logic_vector(3 downto 0);
 
 	-- Salidas hacia la decoder.
         S_decoder_act:	out std_logic;
@@ -61,7 +61,8 @@ architecture funcional of cu is
     signal pc: unsigned(XLEN-1 downto 0) := unsigned(XLEN_CERO);
 
 begin
-    process(E_reloj, E_act, E_ocupado, E_codigoOp, E_fun3, E_fun7)
+    --process(E_reloj, E_act, E_ocupado, E_codigoOp, E_fun3, E_fun7)
+    process(E_reloj, E_act, E_codigoOp, E_fun3, E_fun7)
         variable estadoSig,estado: estados_t := FETCH;
         variable aux: std_logic_vector(XLEN-1 downto 0);
     begin
@@ -78,9 +79,9 @@ begin
             
             -- Avanzamos al siguiente estado si ninguno de 
 	    -- los componentes nos dice que está ocupado.
-            if E_ocupado = '0' then
-                estado := estadoSig;
-            end if;
+            --if E_ocupado = '0' then
+                --estado := estadoSig;
+            --end if;
             
         
             case estado is
@@ -420,7 +421,7 @@ begin
                     estadoSig	    := PC_ACTUALIZAR;
 
                 when PC_ACTUALIZAR =>
-		    pc	<= E_resultado;
+		    pc	<= unsigned(E_resultado);
                     estadoSig := FETCH;
                     
             end case;

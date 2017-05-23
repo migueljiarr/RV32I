@@ -5,21 +5,21 @@ use IEEE.NUMERIC_STD.ALL;
 library work;
 use work.constants.all;
 
-entity cpu_ram_toplevel is
+entity toplevel is
     Port(
-    	E_reloj: in std_logic := '0'
+    	E_reloj:    in std_logic := '0'
     );
-end cpu_ram_toplevel; 
+end toplevel; 
 
 
-architecture estructural of cpu_ram_toplevel is
+architecture estructural of toplevel is
     
     -- Componentes:
     Component cu
 	Port(
 	    E_reloj:        in std_logic;
 	    E_act:          in std_logic;
-	    E_ocupado:      in std_logic;
+	    --E_ocupado:      in std_logic;
 	    E_resultado:    in std_logic_vector(XLEN-1 downto 0);
 	    E_ram_bDat:     in std_logic_vector(XLEN-1 downto 0);
 	    E_codigoOp:     in std_logic_vector(4 downto 0);
@@ -45,7 +45,7 @@ architecture estructural of cpu_ram_toplevel is
 	    S_reg_op:       out std_logic;
 	    S_reg_sel1:     out std_logic_vector(log2XLEN-1 downto 0);
 	    S_reg_sel2:     out std_logic_vector(log2XLEN-1 downto 0);
-	    S_reg_selD:     out std_logic_vector(log2XLEN-1 downto 0);
+	    --S_reg_selD:     out std_logic_vector(log2XLEN-1 downto 0);
 	    S_reg_dato:     out std_logic_vector(XLEN-1 downto 0)
 	);
     end component;
@@ -97,7 +97,7 @@ architecture estructural of cpu_ram_toplevel is
 	);
     end component;
 
-    component mux2a1
+    component muxXLEN2a1
 	port(
 	    i0	: in    std_logic_vector(XLEN-1 downto 0);
 	    i1	: in    std_logic_vector(XLEN-1 downto 0);
@@ -123,7 +123,7 @@ architecture estructural of cpu_ram_toplevel is
     signal reg_op:	    std_logic;
     signal reg_sel1:	    std_logic_vector(log2XLEN-1 downto 0);
     signal reg_sel2:	    std_logic_vector(log2XLEN-1 downto 0);
-    signal reg_selD:	    std_logic_vector(log2XLEN-1 downto 0);
+    --signal reg_selD:	    std_logic_vector(log2XLEN-1 downto 0);
     signal reg_dato:	    std_logic_vector(XLEN-1 downto 0);	
     signal mux_alu_sel1:    std_logic;
     signal mux_alu_sel2:    std_logic;
@@ -190,7 +190,7 @@ begin
 	S_reg_op	=>  reg_op,
 	S_reg_sel1	=>  reg_sel1,
 	S_reg_sel2	=>  reg_sel2,
-	S_reg_selD	=>  reg_selD,
+	--S_reg_selD	=>  reg_selD,
 	S_reg_dato	=>  reg_dato
     );
 	
@@ -220,14 +220,14 @@ begin
 	--O_eq	=> alu_eq
     );
 	 
-    I_mux1: mux2a1 port map(
+    I_mux1: muxXLEN2a1 port map(
 	i0  =>	uc_inmediato1,
 	i1  =>	reg_dat1,
 	s   =>	mux_alu_sel1,
 	o   =>	alu_dat1
     );
 	 
-    I_mux2: mux2a1 port map(
+    I_mux2: muxXLEN2a1 port map(
 	i0  =>	uc_inmediato2,
 	i1  =>	reg_dat2,
 	s   =>	mux_alu_sel2,
@@ -256,6 +256,7 @@ begin
 	--O_Busy: out std_logic
     );
 	
+
     -- Proceso vacío para que todo ocurra secuencialmente
     -- a partir de la señal de reloj.
     process(E_reloj)
