@@ -42,4 +42,12 @@ Thumbs.db
 
 # Project specific:
 *.o
+*.vcd
 work-obj93.cf
+alu
+cu
+decoder
+ram4k
+ram4k_tb
+registros
+registros_tb
