@@ -40,32 +40,44 @@ constant RAM_INIT : store_t := (
 -- NOP: 00100, offset: 0, rs1: 0, funct3: 000 = ADDI, rd: 0:
 -- 0000 0000 0000 0000 0000 0000 0001 0000 => 
 
+-- Saltar a la intruccion en la posicion 8.
+-- 0: JAL: 11011, offset: 8, rd: 0:
+-- 0000 0000 1000 0000 0000 0000 0110 1100 => 0080006C
+
 -- Cargar el dato de la posicion 64 (255) al registro X1.
--- 0: LOAD: 00000, offset: 64, rs1: 0, funct3: 010 = LW, rd: 1:
+-- 8: LOAD: 00000, offset: 64, rs1: 0, funct3: 010 = LW, rd: 1:
 -- 0000 0100 0000 0000 0010 0000 1000 0000 => 04002080
 
 -- Sumar a cero 4 y cargarlo en el registro 2.
--- 1: OPIMM: 00100, offset: 4, rs1: 0, funct3: 000 = ADDI, rd: 2:
+-- 9: OPIMM: 00100, offset: 4, rs1: 0, funct3: 000 = ADDI, rd: 2:
 -- 0000 0000 0100 0000 0000 0001 0001 0000 => 00400110
 
 -- XOR de 0xFF con 0x33 y cargarlo en el registro 3.
--- 2: OPIMM: 00100, offset: 0x33, rs1: 1, funct3: 100 = XORI, rd: 3:
+-- 10: OPIMM: 00100, offset: 0x33, rs1: 1, funct3: 100 = XORI, rd: 3:
 -- 0000 0011 0011 0000 1100 0001 1001 0000 => 0330C190
 
 -- AND de 0xFF con 0x33 y cargarlo en el registro 3.
--- 3: OPIMM: 00100, offset: 0x33, rs1: 1, funct3: 111 = ANDI, rd: 3:
+-- 11: OPIMM: 00100, offset: 0x33, rs1: 1, funct3: 111 = ANDI, rd: 3:
 -- 0000 0011 0011 0000 1111 0001 1001 0000 => 0330F190
 
 -- OR de 0xFF con 0xF33 y cargarlo en el registro 3.
--- 4: OPIMM: 00100, offset: 0xF33, rs1: 1, funct3: 110 = ORI, rd: 3:
+-- 12: OPIMM: 00100, offset: 0xF33, rs1: 1, funct3: 110 = ORI, rd: 3:
 -- 1111 0011 0011 0000 1110 0001 1001 0000 => F330E190
 
 -- Desplazar a la izquierda a 255 cuatro lugares y cargarlo en el registro 3.
--- x: OPIMM: 00100, offset: 4, rs1: 1, funct3: 001 = SLLI, rd: 3:
+-- 13: OPIMM: 00100, offset: 4, rs1: 1, funct3: 001 = SLLI, rd: 3:
 -- 0000 0000 0100 0000 1001 0001 1001 0000 => 00409190
 
-X"04002080", X"00400110", X"0330C190", X"0330F190", X"F330E190", X"00409190", X"00000001", X"00000001", 
-X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
+-- Desplazar a la derecha a 255 cuatro lugares y cargarlo en el registro 3.
+-- 14: OPIMM: 00100, offset: 4, rs1: 1, funct3: 101 = SRL_SRA, rd: 3:
+-- 0000 0000 0100 0000 1101 0001 1001 0000 => 0040D190
+
+-- Desplazar aritmeticamente a la derecha a 255 cuatro lugares y cargarlo en el registro 3.
+-- 15: OPIMM: 00100, offset: 4, rs1: 1, funct3: 101 = SRL_SRA, rd: 3:
+-- 0100 0000 0100 0000 1101 0001 1001 0000 => 4040D190
+
+X"0080006C", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
+X"04002080", X"00400110", X"0330C190", X"0330F190", X"F330E190", X"00409190", X"0040D190", X"4040D190", 
 X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
 X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
 X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
@@ -79,6 +91,8 @@ X"000000FF",
 others => X"00000000"
 );
 
+-- 64 = 0100 0000
+-- 56 = 0011 1000
 
 end package ram4k_init;
 
