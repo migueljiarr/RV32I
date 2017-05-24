@@ -23,12 +23,19 @@ end registros;
 
 architecture Funcional of registros is
 type store_registros is array(0 to 31) of std_logic_vector(XLEN-1 downto 0);
-signal regs: store_registros := (others => XLEN_CERO);
+constant REG_INIT : store_registros := (
+X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000",
+X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000",
+X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000",
+X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000"
+);
+signal regs: store_registros := REG_INIT;
 signal S_OCUPADO : std_logic;
 begin
 
 	process(E_Reloj, E_Enable, E_CodOP, E_Sel1, E_Sel2, E_Dato)
 	begin
+		regs(0) <= XLEN_CERO;
 		-- Si es de subida
 		if rising_edge(E_Reloj) and E_Enable = '1' then
 			

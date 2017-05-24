@@ -72,15 +72,16 @@ begin
         -- for the controlled units, which run on the rising edge.
 	    if NOT E_reloj'STABLE and E_reloj = '0' and E_act = '1' then
         
-            S_alu_act <= '0';
-            S_decoder_act <= '0';
-            S_reg_act <= '0';
-            S_alu_op <= ALU_ADD;
+            S_alu_act	    <= '0';
+            S_decoder_act   <= '0';
+            S_reg_act	    <= '0';
+            S_ram_act	    <= '0';
+            S_alu_op	    <= ALU_ADD;
             
             -- Avanzamos al siguiente estado si ninguno de 
 	    -- los componentes nos dice que está ocupado.
             --if E_ocupado = '0' then
-                --estado := estadoSig;
+                estado := estadoSig;
             --end if;
             
         
@@ -91,6 +92,7 @@ begin
 		    -- indicada por el PC.
 		    S_ram_bDir <= std_logic_vector(pc);
 		    S_ram_op <= LEER;
+		    S_ram_act <= '1';
                     estadoSig := DECODE;
 
 		when DECODE =>
@@ -259,7 +261,8 @@ begin
                     S_alu_op	<= ALU_ADD;
                     --S_reg_act	<= '1';
                     S_mux_immOReg1  <= INMEDIATO;		-- Immediato. Hace falta una constante.
-                    S_mux_datImm1   <= std_logic_vector(resize(unsigned'("100"),XLEN));
+                    --S_mux_datImm1   <= std_logic_vector(resize(unsigned'("100"),XLEN));
+                    S_mux_datImm1   <= std_logic_vector(resize(unsigned'("1"),XLEN));
                     S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= std_logic_vector(pc);
                     estadoSig := JAL2;
@@ -278,7 +281,8 @@ begin
                     S_alu_op	<= ALU_ADD;
                     --S_reg_act	<= '1';
                     S_mux_immOReg1  <= INMEDIATO;		-- Immediato. Hace falta una constante.
-                    S_mux_datImm1   <= std_logic_vector(resize(unsigned'("100"),XLEN));
+                    --S_mux_datImm1   <= std_logic_vector(resize(unsigned'("100"),XLEN));
+                    S_mux_datImm1   <= std_logic_vector(resize(unsigned'("1"),XLEN));
                     S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
                     S_mux_datImm2   <= std_logic_vector(pc);
                     estadoSig := JALR2;
@@ -393,7 +397,9 @@ begin
                 when PC_NEXT =>
                     -- Calculamos el nuevo valor del PC en un caso 
 		    -- normal, es decir el cuarto byte siguiente.
-		    pc <= pc + "100";
+		    -- pc <= pc + "100";
+		    -- Como la RAM son palabras de 4 bytes:
+		    pc <= pc + "1";
                     estadoSig := FETCH;
                 
                 when PC_REG_INMEDIATO =>
