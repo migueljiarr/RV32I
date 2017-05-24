@@ -70,7 +70,7 @@ begin
    int1 : right_XLEN_barrel_shifter port map(op1, op2(4 downto 0), result_rlsft);
    int2 : right_arith_XLEN_barrel_shifter port map(op1, op2(4 downto 0), result_rasft);
 
-   process(enable, op1, op2, funcion)
+   process(enable, op1, op2, funcion, result_lsft, result_rlsft, result_rasft)
 	variable add, addu, eor: 	std_logic_vector(XLEN-1 downto 0);
 	variable sub, subu: 			std_logic_vector(XLEN downto 0);-- Bit adicional para detectar underflow 
 	variable shiftcnt: 	std_logic_vector(4 downto 0);
