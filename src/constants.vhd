@@ -43,7 +43,7 @@ constant FUNC_SLLI:	    std_logic_vector(2 downto 0) := "001";
 constant FUNC_SLTI:	    std_logic_vector(2 downto 0) := "010";
 constant FUNC_SLTIU:	    std_logic_vector(2 downto 0) := "011";
 constant FUNC_XORI:	    std_logic_vector(2 downto 0) := "100";
-constant FUNC_SRLI_SRAI:	std_logic_vector(2 downto 0) := "101";
+constant FUNC_SRLI_SRAI:    std_logic_vector(2 downto 0) := "101";
 constant FUNC_ORI:	    std_logic_vector(2 downto 0) := "110";
 constant FUNC_ANDI:	    std_logic_vector(2 downto 0) := "111";
 

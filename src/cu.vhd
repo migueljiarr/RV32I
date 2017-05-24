@@ -181,7 +181,7 @@ begin
                     S_alu_act	    <= '1';
                     S_alu_op	    <= ALU_ADD;
                     S_reg_act	    <= '1';
-                    S_reg_op	    <= ESCRIBIR;		-- Escribir. Hace falta crear una constante.
+                    S_reg_op	    <= LEER;		-- Escribir. Hace falta crear una constante.
                     S_mux_immOReg1  <= REGISTRO;		-- Registro. Hace falta una constante.
                     S_reg_sel1	    <= E_reg_sel1;
                     S_mux_datImm2   <= E_inmediato;
@@ -201,7 +201,7 @@ begin
 		    -- dato obtenido de memoria en el ciclo anterior, según el
 		    -- tamaño indicado en la instrucción.
                     S_reg_act	<= '1';
-                    S_reg_op	<= LEER;		-- Leer. Hace falta crear una constante.
+                    S_reg_op	<= ESCRIBIR;		-- Leer. Hace falta crear una constante.
                     S_reg_sel1	<= E_reg_dest;
                     case E_fun3 is
                         when FUNC_LB	=>  S_reg_dato <= std_logic_vector(resize(signed(E_ram_bDat(7 downto 0)), XLEN));
@@ -218,7 +218,7 @@ begin
                     S_alu_act	    <= '1';
                     S_alu_op	    <= ALU_ADD;
                     S_reg_act	    <= '1';
-                    S_reg_op	    <= ESCRIBIR;		-- Escribir. Hace falta crear una constante.
+                    S_reg_op	    <= LEER;		-- Escribir. Hace falta crear una constante.
                     S_reg_sel1	    <= E_reg_sel1;
                     S_mux_datImm2   <= E_inmediato;
                     S_mux_immOReg2  <= INMEDIATO;		-- Immediato. Hace falta una constante.
