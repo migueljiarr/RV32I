@@ -68,7 +68,7 @@ begin
                 S_inmediato <= std_logic_vector(resize(signed(instruccion(31) & instruccion(19 downto 12) & instruccion(20) & instruccion(30 downto 25) & instruccion(24 downto 21) & '0'), S_inmediato'length));
 
             when others =>
-                S_inmediato <= std_logic_vector(resize(unsigned(instruccion(31 downto 20)), S_inmediato'length));
+                S_inmediato <= std_logic_vector(resize(signed(instruccion(31 downto 20)), S_inmediato'length));
         end case;
 
     end process;
