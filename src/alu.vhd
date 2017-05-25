@@ -71,24 +71,18 @@ begin
    int2 : right_arith_XLEN_barrel_shifter port map(op1, op2(4 downto 0), result_rasft);
 
    process(enable, op1, op2, funcion, result_lsft, result_rlsft, result_rasft)
-	variable add, addu, eor: 	std_logic_vector(XLEN-1 downto 0);
-	variable sub, subu: 			std_logic_vector(XLEN downto 0);-- Bit adicional para detectar underflow 
-	variable shiftcnt: 	std_logic_vector(4 downto 0);
+	variable add, addu, eor:    std_logic_vector(XLEN-1 downto 0);
+	variable sub, subu: 	    std_logic_vector(XLEN downto 0);	-- Bit adicional para detectar underflow
+
    begin
 	
 	-- Operaciones de la ALU
 	
-		add := std_logic_vector(signed(op1) + signed(op2));
-		addu := std_logic_vector(unsigned(op1) + unsigned(op2));
-		sub := std_logic_vector(signed('0' & op1) - signed('0' & op2));
-		subu := std_logic_vector(unsigned('0' & op1) - unsigned('0' & op2));
-		
-		-- comparación sin signo: bit de underflow
-		--ltu := sub(XLEN) = '1';
-		
-		-- comparación con signo: xor del bit de underflow con los bits de signo (tras xor)
-		eor := op1 xor op2;
-		--lt := (sub(XLEN) xor eor(XLEN-1)) = '1';
+		add	:= std_logic_vector(signed(op1) + signed(op2));
+		addu	:= std_logic_vector(unsigned(op1) + unsigned(op2));
+		sub	:= std_logic_vector(signed('0' & op1) - signed('0' & op2));
+		subu	:= std_logic_vector(unsigned('0' & op1) - unsigned('0' & op2));
+		eor	:= op1 xor op2;
 		
 	case funcion is
 		when ALU_ADD 	=> resultado <= add(XLEN-1 downto 0);
@@ -98,8 +92,18 @@ begin
 		when ALU_AND 	=> resultado <= op1 and op2;
 		when ALU_OR 	=> resultado <= op1 or op2;
 		when ALU_XOR 	=> resultado <= eor;
-		when ALU_SLT 	=> resultado <= XLEN_CERO; 
-		when ALU_SLTU 	=> resultado <= XLEN_CERO; 
+		when ALU_SLT 	=>
+		    IF (sub(XLEN) xor eor(XLEN-1)) = '0' THEN
+			resultado <= XLEN_CERO; 
+		    ELSE
+			resultado <= XLEN_UNO; 
+		    END IF;
+		when ALU_SLTU 	=>
+		    IF subu(XLEN) = '0' THEN
+			resultado <= XLEN_CERO; 
+		    ELSE
+			resultado <= XLEN_UNO; 
+		    END IF;
 		when ALU_SLL	=> resultado <= result_lsft;
 		when ALU_SRL 	=> resultado <= result_rlsft;
 		when ALU_SRA 	=> resultado <= result_rasft;
