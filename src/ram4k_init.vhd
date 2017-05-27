@@ -110,16 +110,16 @@ constant RAM_INIT : store_t := (
 
 
 -- SLTI(U)
--- Teniendo en cuenta el signo, se setea X3 a 0x0 pues X1 (0x0FF) es mayor que 0x100.
--- 24=0x18: OPIMM: 00100, offset: 0x100, rs1: 1, funct3: 010 = SLTI, rd: 3:
+-- Teniendo en cuenta el signo, se setea X3 a 0x0 pues X1 (0x0FF) es mayor que 0x800.
+-- 24=0x18: OPIMM: 00100, offset: 0x800, rs1: 1, funct3: 010 = SLTI, rd: 3:
 -- 1000 0000 0000 0000 1010 0001 1001 0000 => 8000A190
 
 -- Teniendo en cuenta el signo, se setea X3 a 0x1 pues X2 (0x004) es menor que 0x0FE.
 -- 25=0x19: OPIMM: 00100, offset: 0x0FE, rs1: 2, funct3: 010 = SLTI, rd: 3:
 -- 0000 1111 1110 0001 0010 0001 1001 0000 => 0FE12190
 
--- Sin tener en cuenta el signo, se setea X3 a 0x1 pues X1 (0x0FF) es menor que 0x100.
--- 26=0x1A: OPIMM: 00100, offset: 0x100, rs1: 1, funct3: 011 = SLTIU, rd: 3:
+-- Sin tener en cuenta el signo, se setea X3 a 0x1 pues X1 (0x0FF) es menor que 0x800.
+-- 26=0x1A: OPIMM: 00100, offset: 0x800, rs1: 1, funct3: 011 = SLTIU, rd: 3:
 -- 1000 0000 0000 0000 1011 0001 1001 0000 => 8000B190
 
 -- Sin tener en cuenta el signo, se setea X3 a 0x0 pues X1 (0x0FF) es mayor que 0x0FE.
