@@ -188,21 +188,51 @@ constant RAM_INIT : store_t := (
 
 
 -- AUIPC
--- No la podemos probar porque la memoria es de 2^12
+-- No la podemos probar porque la memoria es de 2^12, suponiendo que modificar
+-- el valor de los 20 primeros bits del PC no tiene sentido, pues es siempre 0.
 
 
--- JALR?
+-- JALR
+-- Saltamos a la siguiente instruccion.
+-- 39=0x27: JALR: 11001, offset: 0x2A, rs1: 0, funct3: 000, rd: 0:
+-- 0000 0010 1010 0000 0000 0000 0110 0100 => 02A00064
 
--- BRANCH --> 6?
+
+-- BRANCH
+-- Como X0 (0) y X0 (0) son iguales saltamos a la siguiente instruccion.
+-- 42=0x2A: BRANCH: 11000, offset: 0x02, rs2: 0, rs1: 0, funct3: 000=BEQ, rd: 0:
+-- 0000 0000 0000 0000 0000 0001 0110 0000 => 00000160
+
+-- Como X1 (0xFF) y X2 (0x04) son diferentes saltamos a la siguiente instruccion.
+-- 44=0x2C: BRANCH: 11000, offset: 0x02, rs2: 2, rs1: 1, funct3: 001=BNE, rd: 0:
+-- 0000 0000 0010 0000 1001 0001 0110 0000 => 00209160
+
+-- Como X2 (0x04) es menor que X1 (0xFF) saltamos a la siguiente instruccion.
+-- 46=0x2E: BRANCH: 11000, offset: 0x02, rs2: 1, rs1: 2, funct3: 100=BLT, rd: 0:
+-- 0000 0000 0001 0001 0100 0001 0110 0000 => 00114160
+
+-- Como X1 (0xFF) es mayor que X2 (0x04) saltamos a la siguiente instruccion.
+-- 48=0x30: BRANCH: 11000, offset: 0x02, rs2: 2, rs1: 1, funct3: 101=BGE, rd: 0:
+-- 0000 0000 0010 0000 1101 0001 0110 0000 => 0020D160
+
+-- Como X2 (0x04) es menor que X1 (0xFF) saltamos a la siguiente instruccion.
+-- 50=0x32: BRANCH: 11000, offset: 0x02, rs2: 1, rs1: 2, funct3: 110=BLTU, rd: 0:
+-- 0000 0000 0001 0001 0110 0001 0110 0000 => 00116160
+
+-- Como X1 (0xFF) es mayor que X2 (0x04) saltamos a la siguiente instruccion.
+-- 52=0x34: BRANCH: 11000, offset: 0x02, rs2: 2, rs1: 1, funct3: 111=BGEU, rd: 0:
+-- 0000 0000 0010 0000 1111 0001 0110 0000 => 0020F160
+
+-- Del PC=0x36 en adelante continuaria haciendo NOPs.
 
 
 X"0080006C", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
 X"04002080", X"00400110", X"0330C190", X"0330F190", X"F330E190", X"00409190", X"0040D190", X"4040D190", 
 X"002081B0", X"402081B0", X"0020E1B0", X"0020C1B0", X"0020F1B0", X"002091B0", X"0020D1B0", X"4020D1B0", 
 X"8000A190", X"0FE12190", X"8000B190", X"0FE0B190", X"001131B0", X"0020B1B0", X"80004234", X"800032B4", 
-X"00004334", X"000033B4", X"005221B0", X"0042A1B0", X"007321B0", X"0063A1B0", X"043020A0", X"00000001", 
-X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
-X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
+X"00004334", X"000033B4", X"005221B0", X"0042A1B0", X"007321B0", X"0063A1B0", X"043020A0", X"02A00064", 
+X"00000001", X"00000001", X"00000160", X"00000001", X"00209160", X"00000001", X"00114160", X"00000001", 
+X"0020D160", X"00000001", X"00116160", X"00000001", X"0020F160", X"00000001", X"00000001", X"00000001", 
 X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
 
 -- Datos:
@@ -212,4 +242,3 @@ others => X"00000000"
 );
 
 end package ram4k_init;
-
