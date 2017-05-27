@@ -29,6 +29,7 @@ package ram4k_init is
 
 -- exp de la memoria 2^12
 constant ADDRLEN : integer := 12;
+
 -- array de vectores de longitud XLEN definido en constantes
 type store_t is array(0 to (2**ADDRLEN)-1) of std_logic_vector(XLEN-1 downto 0);
 
@@ -223,7 +224,7 @@ constant RAM_INIT : store_t := (
 -- 52=0x34: BRANCH: 11000, offset: 0x02, rs2: 2, rs1: 1, funct3: 111=BGEU, rd: 0:
 -- 0000 0000 0010 0000 1111 0001 0110 0000 => 0020F160
 
--- Del PC=0x36 en adelante continuaria haciendo NOPs.
+-- De la direccion de memoria 0x36 en adelante continuaria haciendo NOPs.
 
 
 X"0080006C", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
