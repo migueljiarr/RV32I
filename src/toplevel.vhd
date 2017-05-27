@@ -7,7 +7,35 @@ use work.constants.all;
 
 entity toplevel is
     Port(
-    	E_reloj:    in std_logic := '0'
+    	E_reloj:    in std_logic := '0';
+		S_top_uc_alu_act:      out std_logic;
+	   S_top_uc_decoder_act:  out std_logic;
+	   S_top_uc_instruccion:  out std_logic_vector(XLEN-1 downto 0);
+	   S_top_uc_alu_op:       out std_logic_vector(3 downto 0);
+	   S_top_uc_mux_immOReg1: out std_logic;
+      S_top_uc_mux_immOReg2: out std_logic;
+      S_top_uc_mux_datImm1:  out std_logic_vector(XLEN-1 downto 0);
+      S_top_uc_mux_datImm2:  out std_logic_vector(XLEN-1 downto 0);
+      S_top_uc_ram_op:       out std_logic;
+      S_top_uc_ram_act:      out std_logic;
+      S_top_uc_ram_bDir:     out std_logic_vector(XLEN-1 downto 0);
+      S_top_uc_ram_bDat:     out std_logic_vector(XLEN-1 downto 0);
+      S_top_uc_reg_act:      out std_logic;
+      S_top_uc_reg_op:       out std_logic;
+      S_top_uc_reg_sel1:     out std_logic_vector(log2XLEN-1 downto 0);
+      S_top_uc_reg_sel2:     out std_logic_vector(log2XLEN-1 downto 0);
+      S_top_uc_reg_dato:     out std_logic_vector(XLEN-1 downto 0);
+		S_top_dec_reg_sel1:     out std_logic_vector(4 downto 0);
+	   S_top_dec_reg_sel2:     out std_logic_vector(4 downto 0);
+	   S_top_dec_reg_dest:     out std_logic_vector(4 downto 0);
+	   S_top_dec_inmediato:    out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
+	   S_top_dec_codigoOp:     out std_logic_vector(4 downto 0);
+	   S_top_dec_fun3:         out std_logic_vector(2 downto 0);
+	   S_top_dec_fun7:         out std_logic_vector(6 downto 0);
+		S_top_ram_Data: out std_logic_vector(XLEN-1 downto 0);
+		S_top_alu_resultado: out std_logic_vector(XLEN-1 downto 0):= XLEN_CERO;
+		S_top_reg_Registro1: out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO; -- Salida registro 1 (LW)
+	   S_top_reg_Registro2: out std_logic_vector(XLEN-1 downto 0) := XLEN_CERO  -- Salida registro 2 (LW)
     );
 end toplevel; 
 
@@ -255,7 +283,36 @@ begin
 	O_Data	    =>	ram_bDat_S
 	--O_Busy: out std_logic
     );
-	
+	 
+	 
+	S_top_uc_alu_act <=alu_act;
+	S_top_uc_decoder_act <= dec_act; 
+	S_top_uc_instruccion <= dec_instruccion;  
+	S_top_uc_alu_op <= alu_op;       
+	S_top_uc_mux_immOReg1 <= mux_alu_sel1; 
+   S_top_uc_mux_immOReg2 <= mux_alu_sel2; 
+   S_top_uc_mux_datImm1 <= uc_inmediato1;  
+   S_top_uc_mux_datImm2 <= uc_inmediato2;  
+   S_top_uc_ram_op <= ram_op;       
+   S_top_uc_ram_act <= ram_act;      
+   S_top_uc_ram_bDir <= ram_bDir_E;     
+   S_top_uc_ram_bDat <= ram_bDat_E; 
+   S_top_uc_reg_act <= reg_act;
+   S_top_uc_reg_op <= reg_op;
+   S_top_uc_reg_sel1 <= reg_sel1;
+   S_top_uc_reg_sel2 <= reg_sel2; 
+   S_top_uc_reg_dato <= reg_dato;	
+	S_top_dec_reg_sel1 <= dec_reg_sel1;
+	S_top_dec_reg_sel2 <= dec_reg_sel2;
+	S_top_dec_reg_dest <= dec_reg_dest;
+	S_top_dec_inmediato <= dec_inmediato;
+	S_top_dec_codigoOp <= dec_codigoOp;
+	S_top_dec_fun3 <= dec_fun3;
+	S_top_dec_fun7 <= dec_fun7;	
+	S_top_ram_Data <= ram_bDat_S;
+	S_top_alu_resultado <= alu_resultado;
+	S_top_reg_Registro1 <= reg_dat1;
+	S_top_reg_Registro2 <= reg_dat2;
 
     -- Proceso vacío para que todo ocurra secuencialmente
     -- a partir de la señal de reloj.
