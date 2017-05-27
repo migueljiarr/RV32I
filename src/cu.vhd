@@ -238,7 +238,8 @@ begin
                     S_reg_sel2	    <= E_reg_sel2;
                     S_mux_immOReg2  <= REGISTRO;			-- Registro. Hace falta una constante.
                     S_mux_immOReg1  <= INMEDIATO;			-- Immediato. Hace falta una constante.
-                    S_mux_datImm1    <= XLEN_CERO;
+                    S_mux_datImm1   <= XLEN_CERO;
+                    estadoSig := STORE3;
                 
                 when STORE3 =>
 		    -- Similar que LOAD3.
