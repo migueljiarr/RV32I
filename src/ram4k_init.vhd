@@ -36,18 +36,25 @@ constant RAM_INIT : store_t := (
 
 -- Instrucciones:
 
+-- NOP.
 -- Instruccion en la que no se hace nada.
 -- NOP: 00100, offset: 0, rs1: 0, funct3: 000 = ADDI, rd: 0:
 -- 0000 0000 0000 0000 0000 0000 0001 0000 => 
 
+
+-- JAL.
 -- Saltar a la intruccion en la posicion 8.
 -- 0=0x0: JAL: 11011, offset: 8, rd: 0:
 -- 0000 0000 1000 0000 0000 0000 0110 1100 => 0080006C
 
+
+-- LOAD.
 -- Cargar el dato de la posicion 0+64 (255) al registro X1.
 -- 8=0x8: LOAD: 00000, offset: 64, rs1: 0, funct3: 010 = LW, rd: 1:
 -- 0000 0100 0000 0000 0010 0000 1000 0000 => 04002080
 
+
+-- OPIMM.
 -- Sumar a X0 (0) 4 y cargarlo en el registro 2.
 -- 9=0x9: OPIMM: 00100, offset: 4, rs1: 0, funct3: 000 = ADDI, rd: 2:
 -- 0000 0000 0100 0000 0000 0001 0001 0000 => 00400110
@@ -76,6 +83,7 @@ constant RAM_INIT : store_t := (
 -- 15=0xF: OPIMM: 00100, offset: 4, rs1: 1, funct3: 101 = SRL_SRA, rd: 3:
 -- 0100 0000 0100 0000 1101 0001 1001 0000 => 4040D190
 
+-- OP.
 -- Sumar X1 (255) a X2(4) y almacenarlo en el registro 3 (0x103).
 -- 16=0x10: OP: 01100, funct7: 0x00, rs2: 2, rs1: 1, funct3: 000 = ADD, rd: 3:
 -- 0000 0000 0010 0000 1000 0001 1011 0000 => 002081B0
@@ -154,6 +162,7 @@ constant RAM_INIT : store_t := (
 -- 33=0x21: LUI: 01011, offset: 0x00003, rd: 7:
 -- 0000 0000 0000 0000 0011 0011 1011 0100 => 000033B4
 
+
 -- SLT
 -- Teniendo en cuenta el signo, se setea X3 a 0x0 pues X4 (0x80004000) es mayor que X5 (0x80003000).
 -- 34=0x22: OP: 01100, funct7: 0x00, rs2: 5, rs1: 4, funct3: 010 = SLT, rd: 3:
@@ -179,6 +188,8 @@ constant RAM_INIT : store_t := (
 
 
 -- AUIPC
+-- No la podemos probar porque la memoria es de 2^12
+
 
 -- JALR?
 
