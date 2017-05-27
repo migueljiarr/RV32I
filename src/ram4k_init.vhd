@@ -108,6 +108,8 @@ constant RAM_INIT : store_t := (
 -- 23=0x17: OP: 01100, funct7: 0x20, rs2: 2, rs1: 1, funct3: 101 = SRL_SRA, rd: 3:
 -- 0100 0000 0010 0000 1111 0001 1011 0000 => 4020D1B0
 
+
+-- SLTI(U)
 -- Teniendo en cuenta el signo, se setea X3 a 0x0 pues X1 (0x0FF) es mayor que 0x100.
 -- 24=0x18: OPIMM: 00100, offset: 0x100, rs1: 1, funct3: 010 = SLTI, rd: 3:
 -- 1000 0000 0000 0000 1010 0001 1001 0000 => 8000A190
@@ -124,9 +126,54 @@ constant RAM_INIT : store_t := (
 -- 27=0x1B: OPIMM: 00100, offset: 0x0FE, rs1: 1, funct3: 011 = SLTIU, rd: 3:
 -- 0000 1111 1110 0000 1011 0001 1001 0000 => 0FE0B190
 
--- SLT(U)
 
--- LUI, AUIPC
+-- SLTU
+-- Sin tener en cuenta el signo, se setea X3 a 0x1 pues X2 (0x04) es menor que X1 (0xFF).
+-- 28=0x1C: OP: 01100, funct7: 0x00, rs2: 1, rs1: 2, funct3: 011 = SLTU, rd: 3:
+-- 0000 0000 0001 0001 0011 0001 1011 0000 => 001131B0
+
+-- Sin tener en cuenta el signo, se setea X3 a 0x0 pues X1 (0xFF) es mayor que X2 (0x04).
+-- 29=0x1D: OP: 01100, funct7: 0x00, rs2: 2, rs1: 1, funct3: 011 = SLTU, rd: 3:
+-- 0000 0000 0010 0000 1011 0001 1011 0000 => 0020B1B0001131B0
+
+
+-- LUI
+-- Sumar a X0 (0) 4 y cargarlo en el registro 2.
+-- 30=0x1E: LUI: 01011, offset: 0x80004, rd: 4:
+-- 1000 0000 0000 0000 0100 0010 0011 0100 => 80004234
+
+-- Sumar a X0 (0) 4 y cargarlo en el registro 2.
+-- 31=0x1F: LUI: 01011, offset: 0x80003, rd: 5:
+-- 1000 0000 0000 0000 0011 0010 1011 0100 => 800032B4
+
+-- Sumar a X0 (0) 4 y cargarlo en el registro 2.
+-- 32=0x20: LUI: 01011, offset: 0x00004, rd: 6:
+-- 0000 0000 0000 0000 0100 0011 0011 0100 => 00004334
+
+-- Sumar a X0 (0) 4 y cargarlo en el registro 2.
+-- 33=0x21: LUI: 01011, offset: 0x00003, rd: 7:
+-- 0000 0000 0000 0000 0011 0011 1011 0100 => 000033B4
+
+-- SLT
+-- Teniendo en cuenta el signo, se setea X3 a 0x0 pues X4 (0x80004000) es mayor que X5 (0x80003000).
+-- 34=0x22: OP: 01100, funct7: 0x00, rs2: 5, rs1: 4, funct3: 010 = SLT, rd: 3:
+-- 0000 0000 0101 0010 0010 0001 1011 0000 => 005221B0
+
+-- Teniendo en cuenta el signo, se setea X3 a 0x1 pues X5 (0x80003000) es menor que X4 (0x80004000).
+-- 35=0x23: OP: 01100, funct7: 0x00, rs2: 4, rs1: 5, funct3: 010 = SLT, rd: 3:
+-- 0000 0000 0100 0010 1010 0001 1011 0000 => 0042A1B0
+
+-- Teniendo en cuenta el signo, se setea X3 a 0x0 pues X6 (0x00004000) es mayor que X7 (0x00003000).
+-- 36=0x24: OP: 01100, funct7: 0x00, rs2: 7, rs1: 6, funct3: 010 = SLT, rd: 3:
+-- 0000 0000 0111 0011 0010 0001 1011 0000 => 007321B0
+
+-- Teniendo en cuenta el signo, se setea X3 a 0x1 pues X7 (0x00003000) es menor que X6 (0x00004000).
+-- 37=0x25: OP: 01100, funct7: 0x00, rs2: 6, rs1: 7, funct3: 010 = SLT, rd: 3:
+-- 0000 0000 0110 0011 1010 0001 1011 0000 => 0063A1B0
+
+
+
+-- AUIPC
 
 -- JALR?
 
@@ -137,14 +184,14 @@ constant RAM_INIT : store_t := (
 X"0080006C", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
 X"04002080", X"00400110", X"0330C190", X"0330F190", X"F330E190", X"00409190", X"0040D190", X"4040D190", 
 X"002081B0", X"402081B0", X"0020E1B0", X"0020C1B0", X"0020F1B0", X"002091B0", X"0020D1B0", X"4020D1B0", 
-X"8000A190", X"0FE12190", X"8000B190", X"0FE0B190", X"00000001", X"00000001", X"00000001", X"00000001", 
-X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
+X"8000A190", X"0FE12190", X"8000B190", X"0FE0B190", X"001131B0", X"0020B1B0", X"80004234", X"800032B4", 
+X"00004334", X"000033B4", X"005221B0", X"0042A1B0", X"007321B0", X"0063A1B0", X"00000001", X"00000001", 
 X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
 X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
 X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", X"00000001", 
 
 -- Datos:
-X"000000FF",
+X"000000FF", X"FFFFFFFF",
 
 others => X"00000000"
 );
