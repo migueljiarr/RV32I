@@ -70,7 +70,7 @@ begin
 	-- OJO CON ESTO:
         -- run on falling edge to ensure that all control signals arrive in time
         -- for the controlled units, which run on the rising edge.
-	    if NOT E_reloj'STABLE and E_reloj = '0' and E_act = '1' then
+	    if E_reloj'EVENT and E_reloj = '0' and E_act = '1' then
         
             S_alu_act	    <= '0';
             S_decoder_act   <= '0';

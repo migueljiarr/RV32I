@@ -26,7 +26,7 @@ begin
 
     process(E_reloj)
     begin
-        if NOT E_reloj'STABLE and E_reloj = '1' and E_act = '1' then
+        if E_reloj'EVENT and E_reloj = '1' and E_act = '1' then
             instruccion <= E_instruccion;
         end if;
     end process;
