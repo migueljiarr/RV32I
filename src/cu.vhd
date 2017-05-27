@@ -76,7 +76,7 @@ begin
             S_decoder_act   <= '0';
             S_reg_act	    <= '0';
             S_ram_act	    <= '0';
-            S_alu_op	    <= ALU_ADD;
+--            S_alu_op	    <= ALU_ADD;
             
             -- Avanzamos al siguiente estado si ninguno de 
 	    -- los componentes nos dice que está ocupado.

@@ -48,39 +48,39 @@ constant RAM_INIT : store_t := (
 -- 8=0x8: LOAD: 00000, offset: 64, rs1: 0, funct3: 010 = LW, rd: 1:
 -- 0000 0100 0000 0000 0010 0000 1000 0000 => 04002080
 
--- Sumar a X0 (0) 4 y cargarlo en el registro 2.
+-- Sumar a X0 (0) 4 y cargarlo en el registro 2. X2(0x4)
 -- 9=0x9: OPIMM: 00100, offset: 4, rs1: 0, funct3: 000 = ADDI, rd: 2:
 -- 0000 0000 0100 0000 0000 0001 0001 0000 => 00400110
 
--- XOR de 0xFF con 0x33 y cargarlo en el registro 3.
+-- XOR de 0xFF con 0x33 y cargarlo en el registro 3. X3 (0xCC)
 -- 10=0xA: OPIMM: 00100, offset: 0x33, rs1: 1, funct3: 100 = XORI, rd: 3:
 -- 0000 0011 0011 0000 1100 0001 1001 0000 => 0330C190
 
--- AND de 0xFF con 0x33 y cargarlo en el registro 3.
+-- AND de 0xFF con 0x33 y cargarlo en el registro 3. X3 (0x33)
 -- 11=0xB: OPIMM: 00100, offset: 0x33, rs1: 1, funct3: 111 = ANDI, rd: 3:
 -- 0000 0011 0011 0000 1111 0001 1001 0000 => 0330F190
 
--- OR de 0xFF con 0xF33 y cargarlo en el registro 3.
+-- OR de 0xFF con 0xF33 y cargarlo en el registro 3. X3 (0xFFFFFFFF) Se expanden los 12 bits por el signo.
 -- 12=0xC: OPIMM: 00100, offset: 0xF33, rs1: 1, funct3: 110 = ORI, rd: 3:
 -- 1111 0011 0011 0000 1110 0001 1001 0000 => F330E190
 
--- Desplazar a la izquierda a 255 cuatro lugares y cargarlo en el registro 3.
+-- Desplazar a la izquierda a 255 cuatro lugares y cargarlo en el registro 3. X3 (0xFF0)
 -- 13=0xD: OPIMM: 00100, offset: 4, rs1: 1, funct3: 001 = SLLI, rd: 3:
 -- 0000 0000 0100 0000 1001 0001 1001 0000 => 00409190
 
--- Desplazar a la derecha a 255 cuatro lugares y cargarlo en el registro 3.
+-- Desplazar a la derecha a 255 cuatro lugares y cargarlo en el registro 3. X3 (0xF)
 -- 14=0xE: OPIMM: 00100, offset: 4, rs1: 1, funct3: 101 = SRL_SRA, rd: 3:
 -- 0000 0000 0100 0000 1101 0001 1001 0000 => 0040D190
 
--- Desplazar aritmeticamente a la derecha a 255 cuatro lugares y cargarlo en el registro 3.
+-- Desplazar aritmeticamente a la derecha a 255 cuatro lugares y cargarlo en el registro 3. X3 (0xF)
 -- 15=0xF: OPIMM: 00100, offset: 4, rs1: 1, funct3: 101 = SRL_SRA, rd: 3:
 -- 0100 0000 0100 0000 1101 0001 1001 0000 => 4040D190
 
--- Sumar X1 (255) a X2(4) y almacenarlo en el registro 3 (0x103).
+-- Sumar X1 (255) a X2(4) y almacenarlo en el registro X3 (0x103).
 -- 16=0x10: OP: 01100, funct7: 0x00, rs2: 2, rs1: 1, funct3: 000 = ADD, rd: 3:
 -- 0000 0000 0010 0000 1000 0001 1011 0000 => 002081B0
 
--- Restar X1 (255) a X2(4) y almacenarlo en el registro 3 (0xFB).
+-- Restar X1 (255) a X2(4) y almacenarlo en el registro X3 (0xFB).
 -- 17=0x11: OP: 01100, funct7: 0x20, rs2: 2, rs1: 1, funct3: 000 = ADD, rd: 3:
 -- 0100 0000 0010 0000 1000 0001 1011 0000 => 402081B0
 
@@ -92,7 +92,7 @@ constant RAM_INIT : store_t := (
 -- 19=0x13: OP: 01100, funct7: 0x00, rs2: 2, rs1: 1, funct3: 100 = XOR, rd: 3:
 -- 0000 0000 0010 0000 1100 0001 1011 0000 => 0020C1B0
 
--- AND de X1 (255) a X2(4) y almacenarlo en el registro X3 (0x04).
+-- AND de X1 (255) a X2(4) y almacenarlo en el registro X3 (0x4).
 -- 20=0x14: OP: 01100, funct7: 0x00, rs2: 2, rs1: 1, funct3: 111 = AND, rd: 3:
 -- 0000 0000 0010 0000 1111 0001 1011 0000 => 0020F1B0
 
@@ -100,11 +100,11 @@ constant RAM_INIT : store_t := (
 -- 21=0x15: OP: 01100, funct7: 0x00, rs2: 2, rs1: 1, funct3: 001 = SLL, rd: 3:
 -- 0000 0000 0010 0000 1001 0001 1011 0000 => 002091B0
 
--- Desplazar a la derecha a X1 (255) X2 (4) lugares y cargarlo en el registro X3 (0x0F).
+-- Desplazar a la derecha a X1 (255) X2 (4) lugares y cargarlo en el registro X3 (0xF).
 -- 22=0x16: OP: 01100, funct7: 0x00, rs2: 2, rs1: 1, funct3: 101 = SRL_SRA, rd: 3:
 -- 0000 0000 0010 0000 1101 0001 1011 0000 => 0020D1B0
 
--- Desplazar aritmeticamente a la derecha a X1 (255) X2 (4) lugares y cargarlo en el registro X3 (0x0F).
+-- Desplazar aritmeticamente a la derecha a X1 (255) X2 (4) lugares y cargarlo en el registro X3 (0xF).
 -- 23=0x17: OP: 01100, funct7: 0x20, rs2: 2, rs1: 1, funct3: 101 = SRL_SRA, rd: 3:
 -- 0100 0000 0010 0000 1111 0001 1011 0000 => 4020D1B0
 
@@ -138,19 +138,19 @@ constant RAM_INIT : store_t := (
 
 
 -- LUI
--- Sumar a X0 (0) 4 y cargarlo en el registro 2.
+-- Sumar a la parte alta de X0 (0) 0x80004 y cargarlo en el registro 4.
 -- 30=0x1E: LUI: 01011, offset: 0x80004, rd: 4:
 -- 1000 0000 0000 0000 0100 0010 0011 0100 => 80004234
 
--- Sumar a X0 (0) 4 y cargarlo en el registro 2.
+-- Sumar a la parte alta de X0 (0) 0x80003 y cargarlo en el registro 5.
 -- 31=0x1F: LUI: 01011, offset: 0x80003, rd: 5:
 -- 1000 0000 0000 0000 0011 0010 1011 0100 => 800032B4
 
--- Sumar a X0 (0) 4 y cargarlo en el registro 2.
+-- Sumar a la parte alta de X0 (0) 4 y cargarlo en el registro 6.
 -- 32=0x20: LUI: 01011, offset: 0x00004, rd: 6:
 -- 0000 0000 0000 0000 0100 0011 0011 0100 => 00004334
 
--- Sumar a X0 (0) 4 y cargarlo en el registro 2.
+-- Sumar a la parte alta de X0 (0) 3 y cargarlo en el registro 7.
 -- 33=0x21: LUI: 01011, offset: 0x00003, rd: 7:
 -- 0000 0000 0000 0000 0011 0011 1011 0100 => 000033B4
 
