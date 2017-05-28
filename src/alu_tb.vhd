@@ -42,11 +42,13 @@ begin
 	);
 	process
 	begin
-		-- test sub/add
+	
+		-- test ADD/SUB/ADDU/SUBU
 		enable <= '1';
-		op1 <= X"0000000F";
+		op1 <= X"FFFFFFF1";
 		op2 <= X"00000001";
 		funcion <= ALU_ADD;
+		
 		--Validacion de enable a 0. No hace nada
 	wait for 1 ns;
 		enable <= '0';
@@ -54,19 +56,40 @@ begin
 	wait for 1 ns;
 		enable <= '1';
 		funcion <= ALU_SUB;
---		assert resultado = X"0000000E" report "wrong output value" severity failure;
 	wait for 1 ns;
+		op1 <= X"0000000F";
+		op2 <= X"00000001";
 		funcion <= ALU_ADDU;
 	wait for 1 ns;
 		funcion <= ALU_SUBU;
-	-- test xor
+	
+	-- test AND/OR
+	wait for 1 ns;
+		funcion <= ALU_AND;
+	wait for 1 ns;
+		funcion <= ALU_OR;
+	
+	-- test XOR
 	wait for 1 ns;
 		op1 <= X"00000055";
 		op2 <= X"000000FF";
 		funcion <= ALU_XOR;
---		assert resultado = X"000000AA" report "wrong output value" severity failure;
+	
+
+		-- test SLT/SLTU
 	wait for 1 ns;
-		funcion <= ALU_AND;
+		funcion <= ALU_SLT;
+	wait for 1 ns;
+		funcion <= ALU_SLTU;
+	
+	-- test SHIFT
+	wait for 1 ns;
+		funcion <= ALU_SLL;
+	wait for 1 ns;
+		op1 <= X"80000000";
+		funcion <= ALU_SRL;
+	wait for 1 ns;
+		funcion <= ALU_SRA;
 	wait for 1 ns;
 
 end process;
