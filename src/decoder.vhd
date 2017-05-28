@@ -24,7 +24,7 @@ architecture funcional of decoder is
     signal instruccion: std_logic_vector(XLEN-1 downto 0) := XLEN_CERO;
 begin
 
-    process(E_reloj)
+    process(E_reloj,E_act)
     begin
         if E_reloj'EVENT and E_reloj = '1' and E_act = '1' then
             instruccion <= E_instruccion;

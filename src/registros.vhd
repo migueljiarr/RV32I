@@ -30,7 +30,7 @@ X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"
 X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000", X"00000000"
 );
 signal regs: store_registros := REG_INIT;
-signal S_OCUPADO : std_logic;
+-- signal S_OCUPADO : std_logic;
 begin
 
 	process(E_Reloj, E_Enable, E_CodOP, E_Sel1, E_Sel2, E_Dato)
@@ -42,19 +42,19 @@ begin
 			--data := X"00000000"; --Inicializacion de data
 			
 			if E_CodOP = LEER then
-				S_OCUPADO <= '1'; -- Se empieza a trabajar
+				-- S_OCUPADO <= '1'; -- Se empieza a trabajar
 				S_Registro1 <= regs(to_integer(unsigned(E_Sel1)));
 				S_Registro2 <= regs(to_integer(unsigned(E_Sel2)));
 				--data := I_data;
 			end if;
 
 			if E_CodOP = ESCRIBIR then
-				S_OCUPADO <= '1'; -- Se empieza a trabajar
+				-- S_OCUPADO <= '1'; -- Se empieza a trabajar
 				regs(to_integer(unsigned(E_Sel1))) <= E_Dato;
 				--S_OCUPADO = 0; --Se termina de trabajar. Por lo que he visto es necesario ponerlo despues de process
 			end if;
 		end if;
-		S_OCUPADO <= '0';
+		-- S_OCUPADO <= '0';
 	end process;
 	
 end Funcional;
