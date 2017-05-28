@@ -77,39 +77,39 @@ begin
    begin
 	
 	-- Operaciones de la ALU
-	
-		add	:= std_logic_vector(signed(op1) + signed(op2));
-		addu	:= std_logic_vector(unsigned(op1) + unsigned(op2));
-		sub	:= std_logic_vector(signed('0' & op1) - signed('0' & op2));
-		subu	:= std_logic_vector(unsigned('0' & op1) - unsigned('0' & op2));
-		eor	:= op1 xor op2;
-		
-	case funcion is
-		when ALU_ADD 	=> resultado <= add(XLEN-1 downto 0);
-		when ALU_ADDU	=> resultado <= addu(XLEN-1 downto 0);
-		when ALU_SUB	=> resultado <= sub(XLEN-1 downto 0);
-		when ALU_SUBU 	=> resultado <= subu(XLEN-1 downto 0);
-		when ALU_AND 	=> resultado <= op1 and op2;
-		when ALU_OR 	=> resultado <= op1 or op2;
-		when ALU_XOR 	=> resultado <= eor;
-		when ALU_SLT 	=>
-		    IF (sub(XLEN) xor eor(XLEN-1)) = '0' THEN
-			resultado <= XLEN_CERO; 
-		    ELSE
-			resultado <= XLEN_UNO; 
-		    END IF;
-		when ALU_SLTU 	=>
-		    IF subu(XLEN) = '0' THEN
-			resultado <= XLEN_CERO; 
-		    ELSE
-			resultado <= XLEN_UNO; 
-		    END IF;
-		when ALU_SLL	=> resultado <= result_lsft;
-		when ALU_SRL 	=> resultado <= result_rlsft;
-		when ALU_SRA 	=> resultado <= result_rasft;
-		when others	=> resultado <= X"ffffffff";
-	end case;
-	
+		if (enable = '1') Then
+			add	:= std_logic_vector(signed(op1) + signed(op2));
+			addu	:= std_logic_vector(unsigned(op1) + unsigned(op2));
+			sub	:= std_logic_vector(signed('0' & op1) - signed('0' & op2));
+			subu	:= std_logic_vector(unsigned('0' & op1) - unsigned('0' & op2));
+			eor	:= op1 xor op2;
+			
+			case funcion is
+				when ALU_ADD 	=> resultado <= add(XLEN-1 downto 0);
+				when ALU_ADDU	=> resultado <= addu(XLEN-1 downto 0);
+				when ALU_SUB	=> resultado <= sub(XLEN-1 downto 0);
+				when ALU_SUBU 	=> resultado <= subu(XLEN-1 downto 0);
+				when ALU_AND 	=> resultado <= op1 and op2;
+				when ALU_OR 	=> resultado <= op1 or op2;
+				when ALU_XOR 	=> resultado <= eor;
+				when ALU_SLT 	=>
+					 IF (sub(XLEN) xor eor(XLEN-1)) = '0' THEN
+					resultado <= XLEN_CERO; 
+					 ELSE
+					resultado <= XLEN_UNO; 
+					 END IF;
+				when ALU_SLTU 	=>
+					 IF subu(XLEN) = '0' THEN
+					resultado <= XLEN_CERO; 
+					 ELSE
+					resultado <= XLEN_UNO; 
+					 END IF;
+				when ALU_SLL	=> resultado <= result_lsft;
+				when ALU_SRL 	=> resultado <= result_rlsft;
+				when ALU_SRA 	=> resultado <= result_rasft;
+				when others	=> resultado <= X"ffffffff";
+			end case;
+		end if;
 	end process;
 end Funcional;
 
