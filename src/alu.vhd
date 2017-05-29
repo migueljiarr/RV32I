@@ -109,6 +109,8 @@ begin
 				when ALU_SRA 	=> resultado <= result_rasft;
 				when others	=> resultado <= X"ffffffff";
 			end case;
+		else
+		resultado <= X"00000000";
 		end if;
 	end process;
 end Funcional;
